@@ -1,6 +1,16 @@
-# Markdown Viewer v3
+# Markdown Viewer v3.1.2
 
 单文件 HTML 桌面 Markdown 编辑器，支持块编辑、符号工具栏、公式可视化编辑。
+
+## 版本号惯例
+
+遵循语义化版本（semver）：`MAJOR.MINOR.PATCH`
+
+- **PATCH**（如 3.1.1→3.1.2）：bug 修复、性能优化
+- **MINOR**（如 3.1→3.2）：新增功能（向后兼容）
+- **MAJOR**（如 3→4）：架构大改、不兼容的 API 变动
+
+版本号只在 `viewer.html` 右上角一处，每次提交改代码时**必须同步更新**。
 
 ## 架构概要
 
