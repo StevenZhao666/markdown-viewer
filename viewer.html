@@ -1057,7 +1057,9 @@ function feUpdate(){
     const s=blk.querySelectorAll('.fe-slot');
     const v=[...s].map(sl=>sl.textContent.trim()||sl.dataset.ph||'');
     const sym=blk.querySelector('.fe-sum-sym').textContent;
-    latex+='\\'+sym.toLowerCase()+'_'+'{'+v[0]+'}^{'+v[1]+'} '+v[2];
+    // Σ→sum, Π→prod（toLowerCase 会变成 σ/π，KaTeX 不认识）
+    const symCmd={'Σ':'sum','Π':'prod'};
+    latex+='\\'+(symCmd[sym]||sym.toLowerCase())+'_'+'{'+v[0]+'}^{'+v[1]+'} '+v[2];
   });
   c.querySelectorAll('.fe-lim').forEach(blk=>{
     const s=blk.querySelectorAll('.fe-slot');
