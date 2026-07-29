@@ -105,14 +105,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tb-grid-cell{width:18px;height:18px;border:1px solid #666;border-radius:2px;transition:background .1s}
 .tb-grid-cell.hover{background:#007acc;border-color:#5aafff}
 /* 公式编辑器 */
-.tb-mode-btn{padding:4px 12px;border:1px solid #555;background:#3c3c3c;color:#bbb;border-radius:3px;cursor:pointer;font-size:12px;margin-right:4px}
-.tb-mode-btn.active{background:#0e639c;border-color:#007acc;color:#fff}
 .fe-canvas{min-height:80px;padding:10px;background:#1e1e1e;border:1px solid #555;border-radius:4px;margin-bottom:6px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;font-size:16px;font-family:'Times New Roman',serif;color:#ddd}
 .fe-canvas .hint{color:#555;font-size:13px;width:100%}
 .fe-label{font-size:11px;color:#666;margin:4px 0}
-.fe-tpl-scroll{max-height:140px;overflow-y:auto;margin-bottom:6px;padding-right:2px}
-.fe-tpl-scroll::-webkit-scrollbar{width:4px}
-.fe-tpl-scroll::-webkit-scrollbar-thumb{background:#555;border-radius:2px}
 .fe-tpl-grid{display:flex;gap:4px;flex-wrap:wrap}
 .fe-tpl-btn{flex:1 1 calc(50% - 4px);padding:6px 4px;background:#3c3c3c;border:1px solid #555;border-radius:4px;cursor:pointer;color:#ddd;font-size:11px;text-align:center;transition:.1s}
 .fe-tpl-btn:hover{background:#505050;border-color:#007acc}
@@ -160,7 +155,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v3.1.6</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v3.2.0</span></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
 </div>
@@ -174,12 +169,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="resize-handle" id="handleToolbar" title="拖拽调整宽度"></div>
 <div id="toolbar">
   <div class="tb-header">
-    <button class="tb-mode-btn active" id="tbModeSym">符号</button>
-    <button class="tb-mode-btn" id="tbModeForm">公式</button>
+    <span style="font-size:13px;color:#aaa">编辑工具</span>
     <button id="tbClose" title="关闭">✕</button>
   </div>
-  <div id="tbSymWrap">
-  <div style="padding:6px 8px;display:flex;gap:4px;border-bottom:1px solid #444">
+  <div style="flex:1;overflow-y:auto;padding:8px">
+  <div style="padding:0 0 8px;display:flex;gap:4px;border-bottom:1px solid #444;margin-bottom:8px">
     <button class="tb-struct-btn" id="tbTableBtn" title="插入表格">⊞ 表格</button>
     <button class="tb-struct-btn" id="tbHdrBtn" title="标题"># 标题</button>
     <button class="tb-struct-btn" id="tbListBtn" title="列表">- 列表</button>
@@ -188,13 +182,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <span id="tbGridLabel">3×3</span>
     <div id="tbGridCells"></div>
   </div>
-  <div class="tb-scroll" id="tbScroll"></div>
-  </div>
-  <div id="tbFormWrap" style="display:none;flex:1;overflow-y:auto;padding:8px">
-    <div id="feCanvas" class="fe-canvas"><span class="hint">点下方模板添加公式</span></div>
-    <div class="fe-label">模板：</div>
-    <div class="fe-tpl-scroll">
-    <div class="fe-tpl-grid">
+  <div class="fe-label" style="margin-top:4px">📐 公式模板</div>
+  <div class="fe-tpl-grid">
       <button class="fe-tpl-btn" onclick="feAddFrac()">分式<div class="fe-vis">▢/▢</div></button>
       <button class="fe-tpl-btn" onclick="feAddSqrt()">根号<div class="fe-vis">√▢</div></button>
       <button class="fe-tpl-btn" onclick="feAddInt()">积分<div class="fe-vis">∫▢d▢</div></button>
@@ -203,8 +192,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="fe-tpl-btn" onclick="feAddLim()">极限<div class="fe-vis">lim</div></button>
       <button class="fe-tpl-btn" onclick="feAddProd()">累乘<div class="fe-vis">Πx</div></button>
       <button class="fe-tpl-btn" onclick="feAddMtx()">矩阵<div class="fe-vis">[·]</div></button>
-    </div>
-    </div>
+  </div>
+    <div id="feCanvas" class="fe-canvas"><span class="hint">👆 点上方模板添加公式</span></div>
     <div id="feLatex" class="fe-latex">LaTeX: <code id="feLatexCode"></code></div>
     <div class="fe-actions">
       <button class="fe-clear-btn" onclick="feClear()">清空</button>
@@ -212,6 +201,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div class="fe-preview-label">预览</div>
     <div class="fe-preview-box" id="fePreview"></div>
+  <div class="fe-label" style="margin-top:12px">🔤 符号</div>
+  <div class="tb-scroll" id="tbScroll"></div>
   </div>
   <div class="tb-preview" id="tbPreview"></div>
 </div>
@@ -975,14 +966,6 @@ _initTb();
 _initStructBtns();
 
 // ═══ 公式编辑器 ═══
-function feSetMode(mode){// mode: 'sym'|'form'
-  $('tbModeSym').classList.toggle('active',mode==='sym');
-  $('tbModeForm').classList.toggle('active',mode==='form');
-  $('tbSymWrap').style.display=mode==='sym'?'block':'none';
-  $('tbFormWrap').style.display=mode==='form'?'block':'none';
-}
-$('tbModeSym').onclick=()=>feSetMode('sym');
-$('tbModeForm').onclick=()=>feSetMode('form');
 
 // 槽位：contenteditable div + CSS ::before 占位符
 function feSlot(ph){return '<div class="fe-slot" contenteditable="true" data-ph="'+ph+'" oninput="feUpdate()" onfocus="feOnFocus(this)" onblur="feOnBlur(this)"></div>';}
