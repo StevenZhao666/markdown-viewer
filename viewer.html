@@ -158,7 +158,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v3.2.3</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v3.2.4</span></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
 </div>
@@ -971,36 +971,51 @@ _initStructBtns();
 // ═══ 公式编辑器 ═══
 
 // 槽位：contenteditable div + CSS ::before 占位符
+let _focusedSlot=null;
 function feSlot(ph){return '<div class="fe-slot" contenteditable="true" data-ph="'+ph+'" oninput="feUpdate()" onfocus="feOnFocus(this)" onblur="feOnBlur(this)"></div>';}
-function feOnFocus(el){if(!el.textContent.trim()) el.textContent='';}
-function feOnBlur(el){if(!el.textContent.trim()) el.textContent=''; feUpdate();}
+function feOnFocus(el){_focusedSlot=el; if(!el.textContent.trim()) el.textContent='';}
+function feOnBlur(el){_focusedSlot=null; if(!el.textContent.trim()) el.textContent=''; feUpdate();}
+// 递归：从槽位提取 LaTeX（支持嵌套公式块）
+function _slotLatex(slot){
+  // 检查槽内是否有嵌套公式块
+  const frac=slot.querySelector('.fe-frac'); if(frac) return genBlockLatex(frac);
+  const sqrt=slot.querySelector('.fe-sqrt'); if(sqrt) return genBlockLatex(sqrt);
+  const int=slot.querySelector('.fe-int'); if(int) return genBlockLatex(int);
+  const sup=slot.querySelector('.fe-sup'); if(sup) return genBlockLatex(sup);
+  const sum=slot.querySelector('.fe-sum'); if(sum) return genBlockLatex(sum);
+  const lim=slot.querySelector('.fe-lim'); if(lim) return genBlockLatex(lim);
+  const mtx=slot.querySelector('.fe-mtx'); if(mtx) return genBlockLatex(mtx);
+  return slot.textContent.trim()||slot.dataset.ph||'';
+}
+// 插入目标：有聚焦槽位则插入槽内，否则插入 canvas
+function _feTarget(){return _focusedSlot||$('feCanvas');}
 
 function feAddFrac(){
-  $('feCanvas').insertAdjacentHTML('beforeend','<span class="fe-frac">'+feSlot('a')+'<div class="fe-frac-line"></div>'+feSlot('b')+'</span>');
+  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-frac">'+feSlot('a')+'<div class="fe-frac-line"></div>'+feSlot('b')+'</span>');
   feUpdate();
 }
 function feAddSqrt(){
-  $('feCanvas').insertAdjacentHTML('beforeend','<span class="fe-sqrt"><span class="fe-sqrt-sign">√</span><span class="fe-sqrt-overline">'+feSlot('x')+'</span></span>');
+  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-sqrt"><span class="fe-sqrt-sign">√</span><span class="fe-sqrt-overline">'+feSlot('x')+'</span></span>');
   feUpdate();
 }
 function feAddInt(){
-  $('feCanvas').insertAdjacentHTML('beforeend','<span class="fe-int"><span class="fe-int-sym">∫</span>'+feSlot('a')+'<sup>'+feSlot('b')+'</sup>'+feSlot('f')+'<span>d</span>'+feSlot('x')+'</span>');
+  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-int"><span class="fe-int-sym">∫</span>'+feSlot('a')+'<sup>'+feSlot('b')+'</sup>'+feSlot('f')+'<span>d</span>'+feSlot('x')+'</span>');
   feUpdate();
 }
 function feAddSup(){
-  $('feCanvas').insertAdjacentHTML('beforeend','<span class="fe-sup">'+feSlot('x')+'<sup>'+feSlot('n')+'</sup></span>');
+  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-sup">'+feSlot('x')+'<sup>'+feSlot('n')+'</sup></span>');
   feUpdate();
 }
 function feAddSum(){
-  $('feCanvas').insertAdjacentHTML('beforeend','<span class="fe-sum"><span class="fe-sum-sup">'+feSlot('n')+'</span><span class="fe-sum-sym">Σ</span><span class="fe-sum-sub">'+feSlot('i=1')+'</span><span class="fe-sum-expr">'+feSlot('x')+'</span></span>');
+  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-sum"><span class="fe-sum-sup">'+feSlot('n')+'</span><span class="fe-sum-sym">Σ</span><span class="fe-sum-sub">'+feSlot('i=1')+'</span><span class="fe-sum-expr">'+feSlot('x')+'</span></span>');
   feUpdate();
 }
 function feAddLim(){
-  $('feCanvas').insertAdjacentHTML('beforeend','<span class="fe-lim"><span class="fe-lim-text">lim</span><span class="fe-lim-sub">'+feSlot('x→0')+'</span>'+feSlot('f')+'</span>');
+  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-lim"><span class="fe-lim-text">lim</span><span class="fe-lim-sub">'+feSlot('x→0')+'</span>'+feSlot('f')+'</span>');
   feUpdate();
 }
 function feAddProd(){
-  $('feCanvas').insertAdjacentHTML('beforeend','<span class="fe-sum"><span class="fe-sum-sup">'+feSlot('n')+'</span><span class="fe-sum-sym">Π</span><span class="fe-sum-sub">'+feSlot('i=1')+'</span><span class="fe-sum-expr">'+feSlot('x')+'</span></span>');
+  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-sum"><span class="fe-sum-sup">'+feSlot('n')+'</span><span class="fe-sum-sym">Π</span><span class="fe-sum-sub">'+feSlot('i=1')+'</span><span class="fe-sum-expr">'+feSlot('x')+'</span></span>');
   feUpdate();
 }
 function feAddMtx(){
@@ -1036,7 +1051,7 @@ function feInsertMtx(cols,rows){
     }
     if(r<rows-1) inner+=' ; ';
   }
-  $('feCanvas').insertAdjacentHTML('beforeend',
+  _feTarget().insertAdjacentHTML('beforeend',
     '<span class="fe-mtx" data-cols="'+cols+'" data-rows="'+rows+'">[ '+inner+' ]</span>');
   feUpdate();
 }
@@ -1046,57 +1061,37 @@ function feClear(){
   feUpdate();
 }
 
+// 递归：生成单个公式块的 LaTeX
+function genBlockLatex(blk){
+  const slots=[...blk.querySelectorAll('.fe-slot')];
+  const v=slots.map(s=>_slotLatex(s));
+  if(blk.classList.contains('fe-frac')) return '\\frac{'+v[0]+'}{'+v[1]+'}';
+  if(blk.classList.contains('fe-sqrt')) return '\\sqrt{'+v[0]+'}';
+  if(blk.classList.contains('fe-int')) return '\\int_{'+v[0]+'}^{'+v[1]+'} '+v[2]+' d'+v[3];
+  if(blk.classList.contains('fe-sup')) return v[0]+'^{'+v[1]+'}';
+  if(blk.classList.contains('fe-sum')){
+    const sym=blk.querySelector('.fe-sum-sym').textContent;
+    const symCmd={'Σ':'sum','Π':'prod'};
+    return '\\'+(symCmd[sym]||sym.toLowerCase())+'_{'+v[1]+'}^{'+v[0]+'} '+v[2];
+  }
+  if(blk.classList.contains('fe-lim')) return '\\lim_{'+v[0]+'} '+v[1];
+  if(blk.classList.contains('fe-mtx')){
+    const cols=parseInt(blk.dataset.cols)||2, rows=v.length/cols;
+    let m='\\begin{bmatrix}';
+    for(let r=0;r<rows;r++){if(r>0) m+=' \\\\ '; m+=v.slice(r*cols,(r+1)*cols).join(' & ');}
+    return m+' \\end{bmatrix}';
+  }
+  return '';
+}
+
 function feUpdate(){
   const c=$('feCanvas');
-  // 移除提示文字
   const hint=c.querySelector('.hint');
   if(hint) hint.remove();
   let latex='';
-  c.querySelectorAll('.fe-frac').forEach(blk=>{
-    const s=blk.querySelectorAll('.fe-slot');
-    const v=[...s].map(sl=>sl.textContent.trim()||sl.dataset.ph||'▢');
-    latex+='\\frac{'+v[0]+'}{'+v[1]+'}';
-  });
-  c.querySelectorAll('.fe-sqrt').forEach(blk=>{
-    const s=blk.querySelectorAll('.fe-slot');
-    const v=[...s].map(sl=>sl.textContent.trim()||sl.dataset.ph||'▢');
-    latex+='\\sqrt{'+v[0]+'}';
-  });
-  c.querySelectorAll('.fe-int').forEach(blk=>{
-    const s=blk.querySelectorAll('.fe-slot');
-    const v=[...s].map(sl=>sl.textContent.trim()||sl.dataset.ph||'');
-    latex+='\\int_{'+v[0]+'}^{'+v[1]+'} '+v[2]+' d'+v[3];
-  });
-  c.querySelectorAll('.fe-sup').forEach(blk=>{
-    const s=blk.querySelectorAll('.fe-slot');
-    const v=[...s].map(sl=>sl.textContent.trim()||sl.dataset.ph||'▢');
-    latex+=v[0]+'^{'+v[1]+'}';
-  });
-  c.querySelectorAll('.fe-sum').forEach(blk=>{
-    const s=blk.querySelectorAll('.fe-slot');
-    const v=[...s].map(sl=>sl.textContent.trim()||sl.dataset.ph||'');
-    const sym=blk.querySelector('.fe-sum-sym').textContent;
-    // Σ→sum, Π→prod（toLowerCase 会变成 σ/π，KaTeX 不认识）
-    const symCmd={'Σ':'sum','Π':'prod'};
-    latex+='\\'+(symCmd[sym]||sym.toLowerCase())+'_'+'{'+v[1]+'}^{'+v[0]+'} '+v[2];
-  });
-  c.querySelectorAll('.fe-lim').forEach(blk=>{
-    const s=blk.querySelectorAll('.fe-slot');
-    const v=[...s].map(sl=>sl.textContent.trim()||sl.dataset.ph||'');
-    latex+='\\lim_{'+v[0]+'} '+v[1];
-  });
-  c.querySelectorAll('.fe-mtx').forEach(blk=>{
-    const s=blk.querySelectorAll('.fe-slot');
-    const v=[...s].map(sl=>sl.textContent.trim()||sl.dataset.ph||'0');
-    const cols=parseInt(blk.dataset.cols)||2;
-    const rows=v.length/cols;
-    let m='\\begin{bmatrix}';
-    for(let r=0;r<rows;r++){
-      if(r>0) m+=' \\\\ ';
-      m+=v.slice(r*cols,(r+1)*cols).join(' & ');
-    }
-    m+=' \\end{bmatrix}';
-    latex+=m;
+  // 只处理 canvas 直接子级中的公式块（嵌套的由 _slotLatex 递归）
+  c.querySelectorAll(':scope>.fe-frac,:scope>.fe-sqrt,:scope>.fe-int,:scope>.fe-sup,:scope>.fe-sum,:scope>.fe-lim,:scope>.fe-mtx').forEach(blk=>{
+    latex+=genBlockLatex(blk);
   });
 
   $('feLatexCode').textContent=latex||'(空)';
