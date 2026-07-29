@@ -128,7 +128,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .fe-int-sub{grid-area:sub;font-size:13px}
 .fe-int-sup{grid-area:sup;font-size:13px}
 .fe-int-expr{grid-area:expr;display:flex;gap:2px;align-items:baseline}
-.fe-lim{display:inline-grid;grid-template-areas:'text expr''sub .';grid-template-columns:auto auto;align-items:end;justify-items:center;vertical-align:middle;margin:0 4px;column-gap:4px;row-gap:1px}
+.fe-lim{display:inline-grid;grid-template-areas:'text expr''sub .';grid-template-columns:auto auto;align-items:center;justify-items:start;vertical-align:middle;margin:0 4px;column-gap:6px;row-gap:1px}
 .fe-lim-text{grid-area:text;font-size:14px;color:#ddd}
 .fe-lim-sub{grid-area:sub;font-size:13px;color:#ccc}
 .fe-lim-expr{grid-area:expr}
@@ -143,6 +143,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .fe-lim{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 4px}
 .fe-lim-text{font-size:13px;color:#ddd}
 .fe-lim-sub{font-size:13px;color:#ccc}
+.fe-sym{display:inline;color:#e0e0e0;font-family:'Times New Roman',serif;font-size:18px;padding:0 2px;vertical-align:middle;cursor:default}
 .fe-mtx{display:inline-flex;align-items:center;vertical-align:middle;margin:0 4px;font-size:20px;color:#aaa}
 .fe-latex{padding:4px 8px;background:#1e1e1e;border-radius:3px;margin:4px 0;font-size:11px;color:#888}
 .fe-latex code{color:#f0a060;font-size:11px}
@@ -168,7 +169,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v3.2.9</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v3.3.0</span></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
 </div>
@@ -187,16 +188,63 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <span id="tbGridLabel">3×3</span>
     <div id="tbGridCells"></div>
   </div>
-  <div class="fe-label" style="margin-top:4px">📐 公式模板</div>
+  <div class="fe-label">📐 常用公式</div>
   <div class="fe-tpl-grid">
       <button class="fe-tpl-btn" onclick="feAddFrac()">分式<div class="fe-vis">▢/▢</div></button>
       <button class="fe-tpl-btn" onclick="feAddSqrt()">根号<div class="fe-vis">√▢</div></button>
-      <button class="fe-tpl-btn" onclick="feAddInt()">积分<div class="fe-vis">∫▢d▢</div></button>
-      <button class="fe-tpl-btn" onclick="feAddSup()">上下标<div class="fe-vis">x²</div></button>
-      <button class="fe-tpl-btn" onclick="feAddSum()">求和<div class="fe-vis">Σx</div></button>
+      <button class="fe-tpl-btn" onclick="feAddSup()">上下标<div class="fe-vis">·ⁿ</div></button>
+  </div>
+  <div class="fe-label" style="margin-top:8px">📊 微积分</div>
+  <div class="fe-tpl-grid">
+      <button class="fe-tpl-btn" onclick="feAddInt()">积分<div class="fe-vis">∫fdx</div></button>
       <button class="fe-tpl-btn" onclick="feAddLim()">极限<div class="fe-vis">lim</div></button>
+      <button class="fe-tpl-btn" onclick="feAddSum()">求和<div class="fe-vis">Σx</div></button>
       <button class="fe-tpl-btn" onclick="feAddProd()">累乘<div class="fe-vis">Πx</div></button>
+  </div>
+  <div class="fe-label" style="margin-top:8px">📏 线性代数</div>
+  <div class="fe-tpl-grid">
       <button class="fe-tpl-btn" onclick="feAddMtx()">矩阵<div class="fe-vis">[·]</div></button>
+  </div>
+  <div class="fe-label" style="margin-top:8px">🔤 希腊字母</div>
+  <div class="fe-tpl-grid">
+      <button class="fe-tpl-btn" onclick="feAddSym('\\alpha','α')">α</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\beta','β')">β</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\gamma','γ')">γ</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\theta','θ')">θ</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\mu','μ')">μ</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\lambda','λ')">λ</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\pi','π')">π</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\sigma','σ')">σ</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\Sigma','Σ')">Σ</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\Pi','Π')">Π</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\Delta','Δ')">Δ</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\nabla','∇')">∇</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\partial','∂')">∂</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\infty','∞')">∞</button>
+  </div>
+  <div class="fe-label" style="margin-top:8px">🔣 运算符 / 关系</div>
+  <div class="fe-tpl-grid">
+      <button class="fe-tpl-btn" onclick="feAddSym('\\pm','±')">±</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\to','→')">→</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\leq','≤')">≤</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\geq','≥')">≥</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\in','∈')">∈</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\neq','≠')">≠</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\approx','≈')">≈</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\forall','∀')">∀</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\exists','∃')">∃</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\cdot','·')">·</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\times','×')">×</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\div','÷')">÷</button>
+  </div>
+  <div class="fe-label" style="margin-top:8px">🔢 常用函数</div>
+  <div class="fe-tpl-grid">
+      <button class="fe-tpl-btn" onclick="feAddSym('\\sin','sin')">sin</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\cos','cos')">cos</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\tan','tan')">tan</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\ln','ln')">ln</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('\\log','log')">log</button>
+      <button class="fe-tpl-btn" onclick="feAddSym('e^{}','e^□')">e^□</button>
   </div>
     <div id="feCanvas" class="fe-canvas"><span class="hint">👆 点上方模板添加公式</span></div>
     <div id="feLatex" class="fe-latex">LaTeX: <code id="feLatexCode"></code></div>
@@ -206,8 +254,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div class="fe-preview-label">预览</div>
     <div class="fe-preview-box" id="fePreview"></div>
-  <div class="fe-label" style="margin-top:12px">🔤 符号</div>
-  <div class="tb-scroll" id="tbScroll"></div>
   </div>
   <div class="tb-preview" id="tbPreview"></div>
 </div>
@@ -983,7 +1029,6 @@ $('sideToggle').onclick=()=>{
 })();
 
 // ── 初始化 ──
-_initTb();
 _initStructBtns();
 
 // ═══ 公式编辑器 ═══
@@ -1004,6 +1049,7 @@ function _slotLatex(slot){
     const sum=slot.querySelector('.fe-sum'); if(sum) return genBlockLatex(sum);
     const lim=slot.querySelector('.fe-lim'); if(lim) return genBlockLatex(lim);
     const mtx=slot.querySelector('.fe-mtx'); if(mtx) return genBlockLatex(mtx);
+    const sym=slot.querySelector('.fe-sym'); if(sym) return genBlockLatex(sym);
   }catch(e){}
   return slot.textContent.trim()||slot.dataset.ph||'';
 }
@@ -1082,6 +1128,12 @@ function feClear(){
   feUpdate();
 }
 
+// 简单符号块（α, β, ∫ 等单独符号，插入 canvas 作为可视块）
+function feAddSym(latex,display){
+  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-sym" data-latex="'+latex+'">'+display+'</span>');
+  feUpdate();
+}
+
 // 递归：生成单个公式块的 LaTeX
 function genBlockLatex(blk){
   const slots=[...blk.querySelectorAll('.fe-slot')];
@@ -1102,6 +1154,7 @@ function genBlockLatex(blk){
     for(let r=0;r<rows;r++){if(r>0) m+=' \\\\ '; m+=v.slice(r*cols,(r+1)*cols).join(' & ');}
     return m+' \\end{bmatrix}';
   }
+  if(blk.classList.contains('fe-sym')) return blk.dataset.latex||blk.textContent;
   return '';
 }
 
@@ -1111,7 +1164,7 @@ function feUpdate(){
   if(hint) hint.remove();
   let latex='';
   // 只处理 canvas 直接子级中的公式块（嵌套的由 _slotLatex 递归）
-  c.querySelectorAll(':scope>.fe-frac,:scope>.fe-sqrt,:scope>.fe-int,:scope>.fe-sup,:scope>.fe-sum,:scope>.fe-lim,:scope>.fe-mtx').forEach(blk=>{
+  c.querySelectorAll(':scope>.fe-frac,:scope>.fe-sqrt,:scope>.fe-int,:scope>.fe-sup,:scope>.fe-sum,:scope>.fe-lim,:scope>.fe-mtx,:scope>.fe-sym').forEach(blk=>{
     latex+=genBlockLatex(blk);
   });
 
