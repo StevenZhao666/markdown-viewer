@@ -120,7 +120,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .fe-sqrt-overline{border-top:2px solid #aaa;padding-top:1px;margin-left:-1px}
 .fe-slot{display:inline-block;min-width:32px;padding:4px 8px;border:2px dashed #888;border-radius:4px;background:#2a2a2a;color:#e0e0e0;text-align:center;font-size:16px;font-family:'Times New Roman',serif;cursor:text;vertical-align:middle;outline:none}
 .fe-slot:focus{border-color:#5aafff;background:#1a3a4a;border-style:solid}
-.fe-slot:empty::before{content:attr(data-ph);color:#777}
+.fe-slot:empty::before{content:attr(data-ph);color:#ccc}
 .fe-int{display:inline-flex;align-items:center;gap:1px;vertical-align:middle;margin:0 4px}
 .fe-int-sym{font-size:22px;color:#ddd;font-family:'Times New Roman',serif}
 .fe-sup{display:inline-flex;align-items:flex-start;vertical-align:middle;margin:0 4px}
@@ -158,7 +158,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v3.2.6</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v3.2.7</span></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
 </div>
@@ -980,9 +980,9 @@ _initStructBtns();
 
 // 槽位：contenteditable div + CSS ::before 占位符
 let _focusedSlot=null;
-function feSlot(ph){return '<div class="fe-slot" contenteditable="true" data-ph="'+ph+'" oninput="feUpdate()" onfocus="feOnFocus(this)" onblur="feOnBlur(this)">'+ph+'</div>';}
+function feSlot(ph){return '<div class="fe-slot" contenteditable="true" data-ph="'+ph+'" oninput="feUpdate()" onfocus="feOnFocus(this)" onblur="feOnBlur(this)"></div>';}
 function feOnFocus(el){_focusedSlot=el;}
-function feOnBlur(el){feUpdate();}
+function feOnBlur(el){if(!el.textContent.trim()) el.textContent=''; feUpdate();}
 // 递归：从槽位提取 LaTeX（支持嵌套公式块）
 function _slotLatex(slot){
   // 检查槽内是否有嵌套公式块
@@ -1009,15 +1009,15 @@ function feAddSqrt(){
   feUpdate();
 }
 function feAddInt(){
-  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-int"><span class="fe-int-sym">∫</span>'+feSlot('a')+'<sup>'+feSlot('b')+'</sup>'+feSlot('f')+'<span>d</span>'+feSlot('x')+'</span>');
+  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-int"><span class="fe-int-sym">∫</span>'+feSlot('a')+'<sup>'+feSlot('b')+'</sup>'+feSlot('f()')+'<span>d</span>'+feSlot('x')+'</span>');
   feUpdate();
 }
 function feAddSup(){
-  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-sup">'+feSlot('x')+'<sup>'+feSlot('n')+'</sup></span>');
+  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-sup"><sup>'+feSlot('n')+'</sup></span>');
   feUpdate();
 }
 function feAddSum(){
-  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-sum"><span class="fe-sum-sup">'+feSlot('n')+'</span><span class="fe-sum-sym">Σ</span><span class="fe-sum-sub">'+feSlot('i=1')+'</span><span class="fe-sum-expr">'+feSlot('x')+'</span></span>');
+  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-sum"><span class="fe-sum-sup">'+feSlot('n')+'</span><span class="fe-sum-sym">Σ</span><span class="fe-sum-sub">'+feSlot('i=1')+'</span><span class="fe-sum-expr">'+feSlot('x()')+'</span></span>');
   feUpdate();
 }
 function feAddLim(){
@@ -1025,7 +1025,7 @@ function feAddLim(){
   feUpdate();
 }
 function feAddProd(){
-  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-sum"><span class="fe-sum-sup">'+feSlot('n')+'</span><span class="fe-sum-sym">Π</span><span class="fe-sum-sub">'+feSlot('i=1')+'</span><span class="fe-sum-expr">'+feSlot('x')+'</span></span>');
+  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-sum"><span class="fe-sum-sup">'+feSlot('n')+'</span><span class="fe-sum-sym">Π</span><span class="fe-sum-sub">'+feSlot('i=1')+'</span><span class="fe-sum-expr">'+feSlot('x()')+'</span></span>');
   feUpdate();
 }
 function feAddMtx(){
@@ -1079,7 +1079,7 @@ function genBlockLatex(blk){
   if(blk.classList.contains('fe-frac')) return '\\frac{'+v[0]+'}{'+v[1]+'}';
   if(blk.classList.contains('fe-sqrt')) return '\\sqrt{'+v[0]+'}';
   if(blk.classList.contains('fe-int')) return '\\int_{'+v[0]+'}^{'+v[1]+'} '+v[2]+' d'+v[3];
-  if(blk.classList.contains('fe-sup')) return v[0]+'^{'+v[1]+'}';
+  if(blk.classList.contains('fe-sup')) return '^{'+v[0]+'}';
   if(blk.classList.contains('fe-sum')){
     const sym=blk.querySelector('.fe-sum-sym').textContent;
     const symCmd={'Σ':'sum','Π':'prod'};
