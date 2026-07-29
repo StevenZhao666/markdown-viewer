@@ -123,9 +123,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .fe-sqrt{display:inline-flex;align-items:center;vertical-align:middle;margin:0 4px}
 .fe-sqrt-sign{font-size:20px;color:#ddd;margin-right:1px;font-family:'Times New Roman',serif}
 .fe-sqrt-overline{border-top:2px solid #aaa;padding-top:1px;margin-left:-1px}
-.fe-slot{display:inline-block;min-width:20px;padding:2px 5px;border:1px dashed #555;border-radius:3px;background:#2a2a2a;color:#e0e0e0;text-align:center;font-size:15px;font-family:'Times New Roman',serif;cursor:text;vertical-align:middle;outline:none}
-.fe-slot:focus{border-color:#007acc;background:#1a3a4a}
-.fe-slot:empty::before{content:attr(data-ph);color:#555}
+.fe-slot{display:inline-block;min-width:32px;padding:4px 8px;border:2px dashed #888;border-radius:4px;background:#2a2a2a;color:#e0e0e0;text-align:center;font-size:16px;font-family:'Times New Roman',serif;cursor:text;vertical-align:middle;outline:none}
+.fe-slot:focus{border-color:#5aafff;background:#1a3a4a;border-style:solid}
+.fe-slot:empty::before{content:attr(data-ph);color:#777}
 .fe-int{display:inline-flex;align-items:center;gap:1px;vertical-align:middle;margin:0 4px}
 .fe-int-sym{font-size:22px;color:#ddd;font-family:'Times New Roman',serif}
 .fe-sup{display:inline-flex;align-items:flex-start;vertical-align:middle;margin:0 4px}
@@ -160,7 +160,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v3.1.2</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v3.1.3</span></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
 </div>
