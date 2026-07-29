@@ -306,6 +306,9 @@ function renderMD(text){
     code=code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     return `<pre><code>${code}</code></pre>`;
   });
+  // 先提取 $$...$$ 块，用占位符保护，避免被后续 <p> 包裹拆开
+  const _mathBlocks=[];
+  h=h.replace(/\$\$([\s\S]*?)\$\$/g,(m)=>{_mathBlocks.push(m);return `\x00MB${_mathBlocks.length-1}\x00`;});
   h=h.replace(/`([^`]+)`/g,'<code>$1</code>');
   h=h.replace(/^#### (.+)$/gm,(_,t)=>`<h4 id="${slug(t)}">${t}</h4>`);
   h=h.replace(/^### (.+)$/gm,(_,t)=>`<h3 id="${slug(t)}">${t}</h3>`);
@@ -322,6 +325,8 @@ function renderMD(text){
   h=h.replace(/(<li>.*<\/li>\n?)+/g,'<ul>$&</ul>');
   h=h.replace(/^(?!<[a-z]|$)(.+)$/gm,'<p>$1</p>');
   h=h.replace(/<p>\s*<\/p>/g,'');
+  // 还原 $$...$$ 公式块（占位符不会被 <p> 包裹破坏）
+  h=h.replace(/\x00MB(\d+)\x00/g,(_,i)=>`<div class="math-block">${_mathBlocks[i]}</div>`);
   return h;
 }
 
