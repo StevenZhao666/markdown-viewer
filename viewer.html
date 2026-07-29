@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Markdown Viewer v3</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#1e1e1e;color:#e0e0e0;height:100vh;display:flex;overflow:hidden;font-size:15px}
+.sidebar{width:280px;background:#252526;border-right:1px solid #444;display:flex;flex-direction:column;flex-shrink:0;position:relative}
+.sidebar.collapsed{width:30px;overflow:hidden;min-width:30px}
+.sidebar.collapsed .sidebar-header button{display:none}
+.sidebar.collapsed #tree{display:none}
+.sidebar-toggle{position:absolute;right:-14px;top:4px;width:14px;height:14px;background:#444;border:none;border-radius:2px;cursor:pointer;color:#aaa;font-size:10px;line-height:14px;text-align:center;z-index:10}
+.sidebar-toggle:hover{background:#007acc;color:#fff}
+.sidebar-header{padding:8px 10px;border-bottom:1px solid #444;display:flex;gap:4px;align-items:center}
+.sidebar-header button{flex:1;padding:5px 8px;border:1px solid #666;background:#3c3c3c;color:#ddd;border-radius:3px;cursor:pointer;font-size:12px;white-space:nowrap}
+.sidebar-header button:hover{background:#555}
+.sidebar-header button.primary{border-color:#007acc;color:#fff;background:#0e639c}
+#tree{flex:1;overflow-y:auto;padding:4px 0;font-size:14px}
+.tree-item{display:flex;align-items:center;padding:5px 8px;cursor:pointer;white-space:nowrap;user-select:none;gap:4px}
+.tree-item:hover{background:#333}
+.tree-item.active{background:#094771}
+.tree-item .icon{width:18px;text-align:center;flex-shrink:0;font-size:14px}
+.tree-item .name{overflow:hidden;text-overflow:ellipsis;color:#ddd}
+.tree-item.folder>.name{color:#e8c170}
+.tree-item.file>.name{color:#ddd}
+.tree-item .arrow{width:14px;text-align:center;flex-shrink:0;font-size:11px;transition:transform .15s;color:#999}
+.tree-item .arrow.expanded{transform:rotate(90deg)}
+.tree-children{padding-left:14px}
+.tree-children.hidden{display:none}
+.tree-empty{padding:40px 20px;text-align:center;color:#999;font-size:14px;line-height:1.8}
+.tree-empty u{cursor:pointer;color:#5aafff}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.toolbar{padding:6px 12px;background:#323233;border-bottom:1px solid #444;display:flex;gap:8px;align-items:center;min-height:32px;flex-shrink:0}
+.toolbar span{font-size:13px;color:#aaa}
+#dropZone{flex:1;display:flex;align-items:center;justify-content:center;color:#999;font-size:16px;border:2px dashed #555;margin:20px;border-radius:8px;transition:all .2s;text-align:center;line-height:1.8}
+#dropZone u{cursor:pointer;color:#5aafff}
+#previewWrap{flex:1;overflow:hidden;display:none;position:relative}
+#preview{height:100%;overflow-y:auto;padding:20px 36px 80px;scroll-behavior:smooth;font-size:15px;color:#e8e8e8;line-height:1.8}
+.toc-panel{width:230px;background:#252526;border-left:1px solid #444;display:none;flex-direction:column;flex-shrink:0}
+.toc-panel.visible{display:flex}
+.toc-header{padding:8px 10px;border-bottom:1px solid #444;font-size:12px;color:#aaa;text-transform:uppercase;letter-spacing:1px;display:flex;justify-content:space-between;align-items:center}
+.toc-header button{background:none;border:none;color:#aaa;cursor:pointer;font-size:16px;padding:0 4px}
+.toc-header button:hover{color:#fff}
+#tocList{flex:1;overflow-y:auto;padding:6px 0}
+#tocList .toc-item{display:block;padding:5px 12px 5px 16px;cursor:pointer;color:#bbb;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:2px solid transparent;transition:all .1s;font-size:13px}
+#tocList .toc-item:hover{color:#fff;background:#333}
+#tocList .toc-item.active{color:#fff;background:#094771;border-left-color:#007acc}
+#tocList .toc-item.lvl2{padding-left:28px;font-size:12px}
+#tocList .toc-item.lvl3{padding-left:40px;font-size:12px;color:#999}
+.toc-empty{padding:20px;text-align:center;color:#999;font-size:13px}
+#preview h1,#preview h2,#preview h3{scroll-margin-top:10px}
+#preview h1,#preview h2,#preview h3{color:#fff;margin:24px 0 12px}
+#preview h1{font-size:26px;border-bottom:1px solid #555;padding-bottom:10px}
+#preview h2{font-size:22px}
+#preview h3{font-size:18px;color:#e8e8e8}
+#preview p{margin:10px 0}
+#preview code{background:#3a3a3a;padding:2px 6px;border-radius:3px;font-size:14px;color:#f0a060}
+#preview pre{background:#252526;border:1px solid #555;border-radius:6px;padding:18px;overflow-x:auto;margin:14px 0}
+#preview pre code{background:none;padding:0;color:#e0e0e0;font-size:14px}
+#preview ul,#preview ol{padding-left:28px;margin:10px 0}
+#preview li{margin:4px 0}
+#preview a{color:#5aafff}
+#preview blockquote{border-left:3px solid #666;padding-left:14px;color:#bbb;margin:14px 0}
+#preview table{border-collapse:collapse;margin:14px 0;width:100%}
+#preview th,#preview td{border:1px solid #555;padding:10px 14px;text-align:left}
+#preview th{background:#3a3a3a;color:#fff}
+#preview img{max-width:100%}
+#preview hr{border:none;border-top:1px solid #555;margin:24px 0}
+/* 块编辑 */
+.block{padding:8px 12px;border-radius:6px;transition:background .1s;cursor:text;position:relative}
+.block:hover{background:#2a2a2a}
+.block-editing{position:relative;background:#2a2a2a;outline:2px solid #007acc;margin:4px 0;padding:0}
+.block-editor{width:100%;min-height:80px;background:#1e1e1e;color:#e0e0e0;border:none;padding:12px 16px;font-family:'Consolas','Courier New',monospace;font-size:14px;line-height:1.7;resize:vertical;outline:none;box-sizing:border-box}
+.block-done{position:absolute;top:-28px;right:0;padding:3px 10px;background:#0e639c;color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:12px;z-index:10}
+.block-done:hover{background:#007acc}
+/* 符号工具栏 */
+#toolbar{width:320px;flex-shrink:0;background:#252526;border-left:1px solid #444;display:none;flex-direction:column;overflow:hidden}
+#toolbar.show{display:flex}
+.tb-header{padding:10px 12px;border-bottom:1px solid #444;font-size:13px;color:#aaa;display:flex;justify-content:space-between;align-items:center}
+.tb-header button{background:none;border:none;color:#999;cursor:pointer;font-size:16px;padding:0 4px}
+.tb-header button:hover{color:#fff}
+.tb-scroll{flex:1;overflow-y:auto;padding:8px}
+.tb-btn{display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 12px;background:#3c3c3c;color:#ddd;border:1px solid #555;border-radius:4px;cursor:pointer;font-size:14px;font-family:'Times New Roman',serif;transition:all .1s;margin:2px 0}
+.tb-btn:hover{background:#505050;border-color:#007acc;color:#fff}
+.tb-btn .tsym{font-size:20px;min-width:28px;text-align:center}
+.tb-btn .ttpl{font-size:12px;color:#aaa;font-family:monospace}
+.tb-btn:hover .ttpl{color:#ccc}
+.tb-preview{flex-basis:200px;overflow-y:auto;padding:12px;background:#1e1e1e;border-top:1px solid #444;font-size:13px;line-height:1.6;color:#ddd}
+.tb-preview h1,.tb-preview h2,.tb-preview h3{color:#fff;margin:8px 0 4px;font-size:15px}
+.tb-preview p{margin:4px 0}
+.tb-preview code{background:#3a3a3a;padding:1px 4px;border-radius:2px;color:#f0a060;font-size:12px}
+/* 拖拽 */
+.resize-handle{width:5px;cursor:col-resize;flex-shrink:0;transition:background .15s}
+.resize-handle:hover,.resize-handle.dragging{background:#007acc}
+/* 结构工具 */
+.tb-struct-btn{flex:1;padding:5px 4px;border:1px solid #555;background:#3c3c3c;color:#ccc;border-radius:3px;cursor:pointer;font-size:11px;white-space:nowrap}
+.tb-struct-btn:hover{background:#505050;border-color:#007acc;color:#fff}
+.tb-grid-picker{display:none;position:absolute;right:0;top:70px;background:#333;border:1px solid #777;border-radius:6px;padding:8px;z-index:100}
+.tb-grid-picker.show{display:block}
+.tb-grid-picker span{display:block;text-align:center;font-size:12px;color:#aaa;margin-bottom:4px}
+.tb-grid-row{display:flex;gap:2px;margin-bottom:2px}
+.tb-grid-cell{width:18px;height:18px;border:1px solid #666;border-radius:2px;transition:background .1s}
+.tb-grid-cell.hover{background:#007acc;border-color:#5aafff}
+/* 公式编辑器 */
+.tb-mode-btn{padding:4px 12px;border:1px solid #555;background:#3c3c3c;color:#bbb;border-radius:3px;cursor:pointer;font-size:12px;margin-right:4px}
+.tb-mode-btn.active{background:#0e639c;border-color:#007acc;color:#fff}
+.fe-canvas{min-height:50px;padding:8px;background:#1e1e1e;border:1px solid #555;border-radius:4px;margin-bottom:6px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:16px;font-family:'Times New Roman',serif;color:#ddd}
+.fe-canvas .hint{color:#555;font-size:13px;width:100%}
+.fe-label{font-size:11px;color:#666;margin:4px 0}
+.fe-tpl-scroll{max-height:140px;overflow-y:auto;margin-bottom:6px;padding-right:2px}
+.fe-tpl-scroll::-webkit-scrollbar{width:4px}
+.fe-tpl-scroll::-webkit-scrollbar-thumb{background:#555;border-radius:2px}
+.fe-tpl-grid{display:flex;gap:4px;flex-wrap:wrap}
+.fe-tpl-btn{flex:1 1 calc(50% - 4px);padding:6px 4px;background:#3c3c3c;border:1px solid #555;border-radius:4px;cursor:pointer;color:#ddd;font-size:11px;text-align:center;transition:.1s}
+.fe-tpl-btn:hover{background:#505050;border-color:#007acc}
+.fe-tpl-btn .fe-vis{font-size:16px;color:#ccc;margin-top:2px;font-family:'Times New Roman',serif}
+/* 可视化公式块 */
+.fe-frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 4px}
+.fe-frac-line{width:100%;min-width:30px;height:2px;background:#aaa;margin:3px 0}
+.fe-sqrt{display:inline-flex;align-items:center;vertical-align:middle;margin:0 4px}
+.fe-sqrt-sign{font-size:20px;color:#ddd;margin-right:1px;font-family:'Times New Roman',serif}
+.fe-sqrt-overline{border-top:2px solid #aaa;padding-top:1px;margin-left:-1px}
+.fe-slot{display:inline-block;min-width:20px;padding:2px 5px;border:1px dashed #555;border-radius:3px;background:#2a2a2a;color:#e0e0e0;text-align:center;font-size:15px;font-family:'Times New Roman',serif;cursor:text;vertical-align:middle;outline:none}
+.fe-slot:focus{border-color:#007acc;background:#1a3a4a}
+.fe-slot:empty::before{content:attr(data-ph);color:#555}
+.fe-int{display:inline-flex;align-items:center;gap:1px;vertical-align:middle;margin:0 4px}
+.fe-int-sym{font-size:22px;color:#ddd;font-family:'Times New Roman',serif}
+.fe-sup{display:inline-flex;align-items:flex-start;vertical-align:middle;margin:0 4px}
+.fe-sup sup{font-size:12px;color:#ccc;margin-left:1px}
+.fe-sum{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 4px}
+.fe-sum-sym{font-size:24px;color:#ddd;font-family:'Times New Roman',serif}
+.fe-lim{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 4px}
+.fe-lim-text{font-size:13px;color:#ddd}
+.fe-lim-sub{font-size:13px;color:#ccc}
+.fe-mtx{display:inline-flex;align-items:center;vertical-align:middle;margin:0 4px;font-size:20px;color:#aaa}
+.fe-latex{padding:4px 8px;background:#1e1e1e;border-radius:3px;margin:4px 0;font-size:11px;color:#888}
+.fe-latex code{color:#f0a060;font-size:11px}
+.fe-actions{display:flex;gap:4px}
+.fe-insert-btn{flex:1;padding:7px;background:#0e639c;border:none;border-radius:4px;color:#fff;cursor:pointer;font-size:13px}
+.fe-insert-btn:hover{background:#007acc}
+.fe-clear-btn{flex:1;padding:7px;background:#555;border:none;border-radius:4px;color:#ccc;cursor:pointer;font-size:12px}
+.fe-clear-btn:hover{background:#666}
+.fe-preview-label{font-size:10px;color:#666;margin:4px 0 2px;text-transform:uppercase;letter-spacing:1px}
+.fe-preview-box{min-height:36px;padding:8px;background:#1e1e1e;border:1px solid #444;border-radius:4px;font-size:15px;color:#ddd;overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="sidebar collapsed" id="sidebar">
+  <button class="sidebar-toggle" id="sideToggle" title="展开/折叠">▶</button>
+  <div class="sidebar-header">
+    <button class="primary" id="openFolderBtn" title="选择文件夹">打开文件夹</button>
+    <button id="refreshBtn" title="刷新">↻</button>
+  </div>
+  <div id="tree">
+    <div class="tree-empty">点击 <u id="openFolderLink">打开文件夹</u> 浏览 Markdown 文件</div>
+  </div>
+</div>
+<div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
+<div class="main">
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v3.1</span></div>
+  <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
+  <div id="previewWrap"><div id="preview"></div></div>
+</div>
+<div class="toc-panel" id="tocPanel">
+  <div class="toc-header">
+    <span>目录</span>
+    <button id="tocToggle" title="关闭目录">✕</button>
+  </div>
+  <div id="tocList"><div class="toc-empty">暂无标题</div></div>
+</div>
+<div class="resize-handle" id="handleToolbar" title="拖拽调整宽度"></div>
+<div id="toolbar">
+  <div class="tb-header">
+    <button class="tb-mode-btn active" id="tbModeSym">符号</button>
+    <button class="tb-mode-btn" id="tbModeForm">公式</button>
+    <button id="tbClose" title="关闭">✕</button>
+  </div>
+  <div id="tbSymWrap">
+  <div style="padding:6px 8px;display:flex;gap:4px;border-bottom:1px solid #444">
+    <button class="tb-struct-btn" id="tbTableBtn" title="插入表格">⊞ 表格</button>
+    <button class="tb-struct-btn" id="tbHdrBtn" title="标题"># 标题</button>
+    <button class="tb-struct-btn" id="tbListBtn" title="列表">- 列表</button>
+  </div>
+  <div class="tb-grid-picker" id="tbGridPicker">
+    <span id="tbGridLabel">3×3</span>
+    <div id="tbGridCells"></div>
+  </div>
+  <div class="tb-scroll" id="tbScroll"></div>
+  </div>
+  <div id="tbFormWrap" style="display:none;flex:1;overflow-y:auto;padding:8px">
+    <div id="feCanvas" class="fe-canvas"><span class="hint">点下方模板添加公式</span></div>
+    <div class="fe-label">模板：</div>
+    <div class="fe-tpl-scroll">
+    <div class="fe-tpl-grid">
+      <button class="fe-tpl-btn" onclick="feAddFrac()">分式<div class="fe-vis">▢/▢</div></button>
+      <button class="fe-tpl-btn" onclick="feAddSqrt()">根号<div class="fe-vis">√▢</div></button>
+      <button class="fe-tpl-btn" onclick="feAddInt()">积分<div class="fe-vis">∫▢d▢</div></button>
+      <button class="fe-tpl-btn" onclick="feAddSup()">上下标<div class="fe-vis">x²</div></button>
+      <button class="fe-tpl-btn" onclick="feAddSum()">求和<div class="fe-vis">Σx</div></button>
+      <button class="fe-tpl-btn" onclick="feAddLim()">极限<div class="fe-vis">lim</div></button>
+      <button class="fe-tpl-btn" onclick="feAddProd()">累乘<div class="fe-vis">Πx</div></button>
+      <button class="fe-tpl-btn" onclick="feAddMtx()">矩阵<div class="fe-vis">[·]</div></button>
+    </div>
+    </div>
+    <div id="feLatex" class="fe-latex">LaTeX: <code id="feLatexCode"></code></div>
+    <div class="fe-actions">
+      <button class="fe-clear-btn" onclick="feClear()">清空</button>
+      <button class="fe-insert-btn" id="feInsertBtn" onclick="feInsert()">插入文档</button>
+    </div>
+    <div class="fe-preview-label">预览</div>
+    <div class="fe-preview-box" id="fePreview"></div>
+  </div>
+  <div class="tb-preview" id="tbPreview"></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const tree=$('tree'), preview=$('preview'), previewWrap=$('previewWrap'),
+  dropZone=$('dropZone'), pathBar=$('pathBar'),
+  tocPanel=$('tocPanel'), tocList=$('tocList');
+let dirHandle=null, activeEl=null, headingIds=[], currentFileHandle=null, currentFileName='', currentMDText='', currentFilePath=null;
+
+// ── 生成唯一 ID ──
+function slug(text){return 'h-'+text.toLowerCase().replace(/[^\w\u4e00-\u9fff]+/g,'-').replace(/^-|-$/g,'')||'h-'+Math.random().toString(36).slice(2,8)}
+
+// ── 生成目录 HTML ──
+function buildTOC(html){
+  const rx=/<(h[123])[^>]*id="([^"]*)"[^>]*>(.+?)<\/h[123]>/gi;
+  const items=[];
+  let m;
+  while((m=rx.exec(html))!==null){
+    items.push({tag:m[1],id:m[2],text:m[3].replace(/<[^>]+>/g,'')});
+  }
+  tocList.innerHTML='';
+  if(!items.length){
+    tocList.innerHTML='<div class="toc-empty">暂无标题</div>';
+    tocPanel.classList.remove('visible');
+    $('tocBtn').style.display='none';
+    headingIds=[];
+    return;
+  }
+  tocPanel.classList.add('visible');
+  $('tocBtn').style.display='none';
+  headingIds=items.map(i=>i.id);
+  items.forEach(item=>{
+    const a=document.createElement('a');
+    a.className='toc-item';
+    if(item.tag==='h2') a.classList.add('lvl2');
+    if(item.tag==='h3') a.classList.add('lvl3');
+    a.textContent=item.text;
+    a.title=item.text;
+    a.href='#'+item.id;
+    a.onclick=e=>{
+      e.preventDefault();
+      document.getElementById(item.id)?.scrollIntoView({behavior:'smooth'});
+    };
+    tocList.appendChild(a);
+  });
+}
+
+// ── 滚动高亮当前目录项 ──
+let tocHighlighting=false;
+preview.addEventListener('scroll',()=>{
+  if(tocHighlighting)return;
+  const items=tocList.querySelectorAll('.toc-item');
+  if(!items.length)return;
+  const scrollTop=preview.scrollTop+40;
+  let active=null;
+  items.forEach((a,i)=>{
+    const el=document.getElementById(headingIds[i]);
+    if(el&&el.offsetTop<=scrollTop) active=a;
+  });
+  if(active){
+    items.forEach(a=>a.classList.remove('active'));
+    active.classList.add('active');
+  }
+},{passive:true});
+
+// ── Markdown 渲染 ──
+function renderMD(text){
+  let h=text;
+  h=h.replace(/((?:^\|.+\|\n)+)/gm,function(block){
+    const lines=block.trim().split('\n');
+    if(lines.length<2) return block;
+    const parseRow=r=>r.split('|').slice(1,-1).map(c=>c.trim());
+    const headerCells=parseRow(lines[0]);
+    const dataLines=lines.slice(1).filter(l=>!/^\|[-:| ]+\|$/.test(l));
+    let html='<table>';
+    html+='<thead><tr>'+headerCells.map(c=>'<th>'+c+'</th>').join('')+'</tr></thead>';
+    if(dataLines.length){
+      html+='<tbody>';
+      dataLines.forEach(l=>{
+        const cells=parseRow(l);
+        while(cells.length<headerCells.length) cells.push('');
+        html+='<tr>'+cells.slice(0,headerCells.length).map(c=>'<td>'+c+'</td>').join('')+'</tr>';
+      });
+      html+='</tbody>';
+    }
+    html+='</table>';
+    return html;
+  });
+  h=h.replace(/```(\w*)\n([\s\S]*?)```/g,(_,lang,code)=>{
+    code=code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return `<pre><code>${code}</code></pre>`;
+  });
+  h=h.replace(/`([^`]+)`/g,'<code>$1</code>');
+  h=h.replace(/^#### (.+)$/gm,(_,t)=>`<h4 id="${slug(t)}">${t}</h4>`);
+  h=h.replace(/^### (.+)$/gm,(_,t)=>`<h3 id="${slug(t)}">${t}</h3>`);
+  h=h.replace(/^## (.+)$/gm,(_,t)=>`<h2 id="${slug(t)}">${t}</h2>`);
+  h=h.replace(/^# (.+)$/gm,(_,t)=>`<h1 id="${slug(t)}">${t}</h1>`);
+  h=h.replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>');
+  h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  h=h.replace(/\*(.+?)\*/g,'<em>$1</em>');
+  h=h.replace(/!\[([^\]]*)\]\(([^)]+)\)/g,'<img src="$2" alt="$1">');
+  h=h.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank">$1</a>');
+  h=h.replace(/^---$/gm,'<hr>');
+  h=h.replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>');
+  h=h.replace(/^- (.+)$/gm,'<li>$1</li>');
+  h=h.replace(/(<li>.*<\/li>\n?)+/g,'<ul>$&</ul>');
+  h=h.replace(/^(?!<[a-z]|$)(.+)$/gm,'<p>$1</p>');
+  h=h.replace(/<p>\s*<\/p>/g,'');
+  return h;
+}
+
+async function loadFile(handle,name){
+  const file=await handle.getFile();
+  const text=await file.text();
+  currentFileHandle=handle;
+  currentFileName=name;
+  currentMDText=text;
+  _showPreview(text,name);
+}
+
+// ══════════════ 块编辑系统 ══════════════
+
+// ── 解析块 ──
+function _parseBlocks(text){
+  const lines=text.split('\n');
+  const blocks=[]; let cur=[];
+  function flush(){
+    if(cur.length && cur.some(l=>l.trim())){blocks.push(cur.join('\n'));}
+    cur=[];
+  }
+  for(let i=0;i<lines.length;i++){
+    const l=lines[i];
+    if(/^#{1,4}\s/.test(l)){flush(); cur.push(l); flush();}
+    else if(/^---$/.test(l)&&!(lines[i-1]||'').startsWith('|')){flush(); cur.push(l); flush();}
+    else cur.push(l);
+  }
+  flush();
+  return blocks.map(b=>b.replace(/\n{3,}/g,'\n\n')).filter(b=>b.trim());
+}
+
+// ── 渲染块 ──
+let _editingIdx=null;
+function _renderBlocks(blocks,container){
+  container.innerHTML='';
+  blocks.forEach((raw,idx)=>{
+    const div=document.createElement('div');
+    div.className='block';
+    div.dataset.idx=idx;
+    div.dataset.raw=raw;
+    if(raw.trim()==='---') div.innerHTML='<hr>';
+    else div.innerHTML=renderMD(raw);
+    div.ondblclick=()=>_editBlock(idx);
+    div.title='双击编辑';
+    container.appendChild(div);
+  });
+  _renderMath(container);
+}
+
+function _renderMath(el){
+  // 优先用 KaTeX auto-render（CDN 已加载的话）
+  if(typeof renderMathInElement==='function'){
+    try{renderMathInElement(el,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})}catch(e){}
+    return;
+  }
+  // 兜底：手动解析 $...$ 和 $$...$$ 用 katex 核心渲染
+  if(typeof katex==='undefined') return;
+  _manualRender(el);
+}
+
+function _manualRender(el){
+  // 用 TreeWalker 遍历所有文本节点
+  const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,null,false);
+  const textNodes=[];
+  while(walker.nextNode()) textNodes.push(walker.currentNode);
+  
+  textNodes.forEach(node=>{
+    const text=node.textContent;
+    // 检查是否包含 $...$
+    if(!text.includes('$')) return;
+    
+    const parent=node.parentNode;
+    const frag=document.createDocumentFragment();
+    let remaining=text;
+    
+    // 先匹配 $$...$$
+    const ddRegex=/\$\$([\s\S]*?)\$\$/g;
+    // 先处理 display math，替换成占位符
+    const displayBlocks=[];
+    let ddMatch;
+    while((ddMatch=ddRegex.exec(text))!==null){
+      displayBlocks.push({idx:ddMatch.index, len:ddMatch[0].length, latex:ddMatch[1], html:null});
+    }
+    
+    // 从后往前替换（保持索引不变）
+    let processed=text;
+    for(let i=displayBlocks.length-1;i>=0;i--){
+      const b=displayBlocks[i];
+      try{
+        b.html=katex.renderToString(b.latex,{throwOnError:false,displayMode:true});
+      }catch(e){b.html='<span style="color:#c44">'+e.message+'</span>';}
+      processed=processed.substring(0,b.idx)+'@@DD'+i+'@@'+processed.substring(b.idx+b.len);
+    }
+    
+    // 再匹配 $...$（跳过已处理的 display blocks）
+    const inRegex=/\$([^$]+?)\$/g;
+    const inlineBlocks=[];
+    let inMatch;
+    while((inMatch=inRegex.exec(processed))!==null){
+      inlineBlocks.push({idx:inMatch.index, len:inMatch[0].length, latex:inMatch[1], html:null});
+    }
+    for(let i=inlineBlocks.length-1;i>=0;i--){
+      const b=inlineBlocks[i];
+      try{
+        b.html=katex.renderToString(b.latex,{throwOnError:false,displayMode:false});
+      }catch(e){b.html='<span style="color:#c44">'+e.message+'</span>';}
+      processed=processed.substring(0,b.idx)+'@@IN'+i+'@@'+processed.substring(b.idx+b.len);
+    }
+    
+    // 把占位符替换回 HTML
+    let result=processed;
+    for(let i=0;i<displayBlocks.length;i++){
+      result=result.replace('@@DD'+i+'@@',displayBlocks[i].html);
+    }
+    for(let i=0;i<inlineBlocks.length;i++){
+      result=result.replace('@@IN'+i+'@@',inlineBlocks[i].html);
+    }
+    
+    // 把文本节点替换为 HTML
+    const tmp=document.createElement('span');
+    tmp.innerHTML=result;
+    while(tmp.firstChild){
+      parent.insertBefore(tmp.firstChild,node);
+    }
+    parent.removeChild(node);
+  });
+}
+
+// ── 编辑块 ──
+function _editBlock(idx){
+  if(_editingIdx!==null) _finishEdit();
+  const blocks=document.querySelectorAll('.block');
+  if(idx>=blocks.length) return;
+  const div=blocks[idx];
+  const raw=div.dataset.raw;
+  div.className='block block-editing';
+  div.innerHTML='<button class="block-done" id="blockDone">✔ 完成</button><textarea class="block-editor"></textarea>';
+  const ta=div.querySelector('.block-editor');
+  ta.value=raw;
+  _editingIdx=idx;
+  ta.focus();
+  _autoSizeTA(ta);
+  _showTb();
+  // 完成按钮
+  const doneBtn=document.getElementById('blockDone');
+  if(doneBtn) doneBtn.onclick=(e)=>{e.stopPropagation();_finishEdit();};
+  // 键盘
+  ta.onkeydown=(e)=>{
+    if(e.key==='Tab'){e.preventDefault();const s=ta.selectionStart;ta.value=ta.value.substring(0,s)+'  '+ta.value.substring(ta.selectionEnd);ta.selectionStart=ta.selectionEnd=s+2;}
+    if(e.key==='Escape'){e.preventDefault();_finishEdit();}
+    if(e.key==='Enter'&&e.ctrlKey){e.preventDefault();_finishEdit();}
+    if(e.key==='Enter'&&_handleTableEnter(ta)){e.preventDefault();}
+  };
+  ta.oninput=()=>{_autoSizeTA(ta);_livePreview()};
+  _livePreview();
+  // 失焦
+  ta.addEventListener('blur',(e)=>{
+    const rel=e.relatedTarget;
+    if(rel&&(rel.closest('#toolbar,#tocPanel,#tbGridPicker')||rel.id==='tocBtn')) return;
+    setTimeout(()=>{
+      const a=document.activeElement;
+      if(!a||!div.contains(a)) _finishEdit();
+    },250);
+  });
+}
+
+function _autoSizeTA(ta){
+  ta.style.height='auto';
+  ta.style.height=Math.max(80,ta.scrollHeight)+'px';
+}
+
+function _finishEdit(){
+  if(_editingIdx===null) return;
+  const idx=_editingIdx; // 捕获当前索引
+  const blocks=document.querySelectorAll('.block');
+  const div=blocks[idx];
+  if(!div) return;
+  const ta=div.querySelector('.block-editor');
+  if(ta){
+    const newRaw=ta.value;
+    div.dataset.raw=newRaw;
+    if(newRaw.trim()==='---') div.innerHTML='<hr>';
+    else div.innerHTML=renderMD(newRaw);
+    div.className='block';
+    div.ondblclick=()=>_editBlock(idx);
+    div.title='双击编辑';
+    _updateFullText();
+    // 重渲染整个预览区的数学公式（确保所有块都被处理）
+    _renderMath(preview);
+  }
+  _editingIdx=null;
+  _hideTb();
+}
+
+function _updateFullText(){
+  const blocks=document.querySelectorAll('.block');
+  let full='';
+  blocks.forEach((b,i)=>{
+    if(i>0) full+='\n';
+    full+=b.dataset.raw;
+  });
+  currentMDText=full;
+  preview.dataset.mdText=full;
+}
+
+// ── 实时预览 ──
+function _livePreview(){
+  const ta=document.querySelector('.block-editor');
+  const pv=$('tbPreview');
+  if(!ta||!pv) return;
+  pv.innerHTML='';
+  const html=renderMD(ta.value);
+  pv.innerHTML=html;
+  _renderMath(pv);
+}
+
+// ── 主预览入口 ──
+function _showPreview(mdText,name){
+  preview.innerHTML='';
+  const blocks=_parseBlocks(mdText||'');
+  _renderBlocks(blocks,preview);
+  previewWrap.style.display='block';
+  dropZone.style.display='none';
+  if(name) pathBar.textContent=name;
+  preview.scrollTop=0;
+  buildTOC(renderMD(mdText||''));
+  if(name) _checkMathDelimiters(mdText||'');
+}
+
+// ── 工具栏 ──
+const TB_SYMBOLS=[
+  {sym:'∫', latex:'\\int_{}^{}', t:'integral'},
+  {sym:'√', latex:'\\sqrt{}', t:'root'},
+  {sym:'π', latex:'\\pi', t:'pi'},
+  {sym:'Σ', latex:'\\sum_{}^{}', t:'sum'},
+  {sym:'∂', latex:'\\partial', t:'partial'},
+  {sym:'∞', latex:'\\infty', t:'infinity'},
+  {sym:'±', latex:'\\pm', t:'plusminus'},
+  {sym:'→', latex:'\\rightarrow', t:'arrow'},
+  {sym:'α', latex:'\\alpha', t:'alpha'},
+  {sym:'β', latex:'\\beta', t:'beta'},
+  {sym:'θ', latex:'\\theta', t:'theta'},
+  {sym:'μ', latex:'\\mu', t:'mu'},
+  {sym:'λ', latex:'\\lambda', t:'lambda'},
+  {sym:'frac', latex:'\\frac{}{}', t:'fraction'},
+  {sym:'lim', latex:'\\lim_{}', t:'limit'},
+  {sym:'∬', latex:'\\iint_{}^{}', t:'doubleint'},
+  {sym:'∇', latex:'\\nabla', t:'nabla'},
+  {sym:'Δ', latex:'\\Delta', t:'Delta'},
+  {sym:'≤', latex:'\\leq', t:'leq'},
+  {sym:'≥', latex:'\\geq', t:'geq'},
+  {sym:'∈', latex:'\\in', t:'in'},
+  {sym:'≠', latex:'\\neq', t:'neq'},
+  {sym:'≈', latex:'\\approx', t:'approx'},
+  {sym:'∀', latex:'\\forall', t:'forall'},
+  {sym:'∃', latex:'\\exists', t:'exists'},
+];
+
+function _initTb(){
+  const sc=$('tbScroll');
+  sc.innerHTML='';
+  TB_SYMBOLS.forEach(s=>{
+    const btn=document.createElement('button');
+    btn.className='tb-btn';
+    btn.title=s.t;
+    btn.innerHTML='<span class="tsym">'+s.sym+'</span><span class="ttpl">'+s.t+'</span>';
+    btn.addEventListener('click',()=>_insertSymbol(s.latex));
+    sc.appendChild(btn);
+  });
+  $('tbClose').onclick=_hideTb;
+}
+
+function _showTb(){$('toolbar').classList.add('show');}
+function _hideTb(){$('toolbar').classList.remove('show');
+  const pv=$('tbPreview'); if(pv) pv.innerHTML=''; $('tbGridPicker').classList.remove('show');
+  // 重新聚焦编辑框
+  const ta=document.querySelector('.block-editor'); if(ta) ta.focus();}
+
+// ── 结构工具：表格选择器 ──
+function _showTablePicker(){
+  const pk=$('tbGridPicker'); const cells=$('tbGridCells'); const label=$('tbGridLabel');
+  const maxC=6,maxR=5; let hoverC=3,hoverR=3;
+  cells.innerHTML='';
+  for(let r=0;r<maxR;r++){
+    const row=document.createElement('div'); row.className='tb-grid-row';
+    for(let c=0;c<maxC;c++){
+      const cell=document.createElement('div'); cell.className='tb-grid-cell';
+      cell.addEventListener('mouseenter',()=>{
+        hoverC=c+1;hoverR=r+1;
+        label.textContent=hoverC+'×'+hoverR;
+        document.querySelectorAll('.tb-grid-cell').forEach((el,i)=>{el.classList.toggle('hover',(i%maxC)<=c&&Math.floor(i/maxC)<=r);});
+      });
+      cell.addEventListener('click',()=>{_insertTable(hoverC,hoverR);pk.classList.remove('show');});
+      row.appendChild(cell);
+    }
+    cells.appendChild(row);
+  }
+  label.textContent='3×3';
+  // 默认高亮 3x3
+  document.querySelectorAll('.tb-grid-cell').forEach((el,i)=>{el.classList.toggle('hover',(i%maxC)<3&&Math.floor(i/maxC)<3);});
+  pk.classList.add('show');
+}
+
+function _insertTable(cols,rows){
+  const ta=document.querySelector('.block-editor'); if(!ta) return;
+  let t='\n';
+  t+='|'+' 列 |'.repeat(cols)+'\n';
+  t+='|'+'---|'.repeat(cols)+'\n';
+  for(let r=0;r<rows;r++) t+='|'+'  |'.repeat(cols)+'\n';
+  const s=ta.selectionStart;
+  ta.value=ta.value.substring(0,s)+t+ta.value.substring(s);
+  ta.selectionStart=ta.selectionEnd=s+4; // 光标放在第一个单元格
+  ta.focus(); _autoSizeTA(ta); _livePreview();
+}
+
+// ── 标题切换 ──
+function _toggleHeading(){
+  const ta=document.querySelector('.block-editor'); if(!ta) return;
+  const lineStart=ta.value.lastIndexOf('\n',ta.selectionStart-1)+1;
+  const lineEnd=ta.value.indexOf('\n',ta.selectionStart);
+  const actualEnd=lineEnd<0?ta.value.length:lineEnd;
+  const oldLine=ta.value.substring(lineStart,actualEnd);
+  let newLine;
+  if(oldLine.startsWith('#### ')) newLine=oldLine.replace('#### ','');
+  else if(oldLine.startsWith('### ')) newLine=oldLine.replace('### ','#### ');
+  else if(oldLine.startsWith('## ')) newLine=oldLine.replace('## ','### ');
+  else if(oldLine.startsWith('# ')) newLine=oldLine.replace('# ','## ');
+  else newLine='# '+oldLine;
+  ta.value=ta.value.substring(0,lineStart)+newLine+ta.value.substring(actualEnd);
+  ta.selectionStart=ta.selectionEnd=lineStart+newLine.length;
+  ta.focus(); _livePreview();
+}
+
+// ── 列表 ──
+function _addListPrefix(){
+  const ta=document.querySelector('.block-editor'); if(!ta) return;
+  const lineStart=ta.value.lastIndexOf('\n',ta.selectionStart-1)+1;
+  const before=ta.value.substring(0,lineStart);
+  const after=ta.value.substring(lineStart);
+  if(after.startsWith('- ')){// 取消列表
+    ta.value=before+after.substring(2);
+    ta.selectionStart=ta.selectionEnd=lineStart;
+  }else{
+    ta.value=before+'- '+after;
+    ta.selectionStart=ta.selectionEnd=lineStart+2;
+  }
+  ta.focus(); _livePreview();
+}
+
+// ── 表格 Enter 自动加行 ──
+function _handleTableEnter(ta){
+  const before=ta.value.substring(0,ta.selectionStart);
+  const after=ta.value.substring(ta.selectionStart);
+  const lastLine=before.substring(before.lastIndexOf('\n')+1);
+  if(!lastLine.startsWith('|')||!lastLine.endsWith('|')) return false;
+  // 统计列数（数 | 的数量 - 1）
+  const cols=(lastLine.match(/\|/g)||[]).length-1;
+  if(cols<1) return false;
+  let newRow='|'+'  |'.repeat(cols);
+  ta.value=before+'\n'+newRow+after;
+  ta.selectionStart=ta.selectionEnd=before.length+3;
+  _autoSizeTA(ta); _livePreview();
+  return true;
+}
+
+// ── 结构按钮初始化 ──
+function _initStructBtns(){
+  $('tbTableBtn').addEventListener('click',_showTablePicker);
+  $('tbHdrBtn').addEventListener('click',_toggleHeading);
+  $('tbListBtn').addEventListener('click',_addListPrefix);
+  // 点击外部关闭表格选择器
+  document.addEventListener('click',e=>{if(!e.target.closest('#tbGridPicker')&&!e.target.closest('#tbTableBtn'))$('tbGridPicker').classList.remove('show');});
+}
+
+function _insertSymbol(latex){
+  const ta=document.querySelector('.block-editor');
+  if(!ta) return;
+  const s=ta.selectionStart, e=ta.selectionEnd;
+  const before=ta.value.substring(0,s);
+  const sc=(before.match(/(^|[^$])\$(?!\$)/g)||[]).length;
+  const inMath=sc%2===1;
+  let ins=latex;
+  if(!inMath) ins='$'+ins+'$';
+  ta.value=before+ins+ta.value.substring(e);
+  // 光标跳到第一个 {} 中间
+  const cp=ins.indexOf('{}');
+  const np=s+(cp>=0?cp+1:ins.length);
+  ta.selectionStart=ta.selectionEnd=np;
+  ta.focus();
+  _autoSizeTA(ta);
+  _livePreview();
+}
+
+// ══════════════ 保存 ─═════════════
+async function saveFile(){
+  if(_editingIdx!==null) _finishEdit();
+  _checkMathDelimiters(currentMDText);
+  if($('pathBar')&&$('pathBar').textContent.includes('⚠️')){
+    const n=($('pathBar').title.match(/\d+/g)||[]).length;
+    if(n&&!confirm('有 '+n+' 行 $ 不成对，确定保存？')) return;
+  }
+  if(currentFilePath){
+    try{
+      const resp = await fetch('/api/write', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({path:currentFilePath, content:currentMDText})
+      });
+      const d=await resp.json();
+      if(d.error) throw new Error(d.error);
+      pathBar.textContent=currentFileName+' ✓已保存';
+      setTimeout(()=>{pathBar.textContent=currentFileName},2000);
+    }catch(e){alert('保存失败: '+e.message);}
+    return;
+  }
+  if(!currentFileHandle){
+    const blob=new Blob([currentMDText],{type:'text/markdown'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=currentFileName||'document.md';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    return;
+  }
+  try{
+    const writable=await currentFileHandle.createWritable();
+    await writable.write(currentMDText);
+    await writable.close();
+    pathBar.textContent=currentFileName+' ✓已保存';
+    setTimeout(()=>{pathBar.textContent=currentFileName},2000);
+  }catch(e){alert('保存失败: '+e.message);}
+}
+
+// ══════════════ 文件树 / 拖放 / 侧栏 ══════════════
+
+// ── 目录树 ──
+function buildTree(container,entries,basePath=''){
+  const folders=[], files=[];
+  for(const [name,handle] of entries){
+    if(handle.kind==='directory') folders.push([name,handle]);
+    else if(name.endsWith('.md')) files.push([name,handle]);
+  }
+  folders.sort((a,b)=>a[0].localeCompare(b[0]));
+  files.sort((a,b)=>a[0].localeCompare(b[0]));
+  for(const [name,handle] of folders){
+    const row=document.createElement('div');
+    row.className='tree-item folder';
+    row.innerHTML=`<span class="arrow">▶</span><span class="icon">📁</span><span class="name">${esc(name)}</span>`;
+    const children=document.createElement('div');
+    children.className='tree-children hidden';
+    row.onclick=async(e)=>{
+      e.stopPropagation();
+      const arrow=row.querySelector('.arrow');
+      if(children.classList.contains('hidden')){
+        if(!children.dataset.loaded){
+          children.textContent='加载中...';
+          try{
+            const sub=await iterToMap(handle);
+            children.textContent='';
+            buildTree(children,sub,basePath+name+'/');
+            children.dataset.loaded='1';
+          }catch(err){children.textContent='读取失败';}
+        }
+        children.classList.remove('hidden');
+        arrow.classList.add('expanded');
+      }else{
+        children.classList.add('hidden');
+        arrow.classList.remove('expanded');
+      }
+    };
+    container.appendChild(row);
+    container.appendChild(children);
+  }
+  for(const [name,handle] of files){
+    const row=document.createElement('div');
+    row.className='tree-item file';
+    row.innerHTML=`<span style="width:14px"></span><span class="icon">📄</span><span class="name">${esc(name)}</span>`;
+    row.onclick=async(e)=>{
+      e.stopPropagation();
+      if(activeEl) activeEl.classList.remove('active');
+      activeEl=row;
+      row.classList.add('active');
+      await loadFile(handle,basePath+name);
+    };
+    container.appendChild(row);
+  }
+}
+
+async function iterToMap(dirHandle){
+  const map=new Map();
+  for await(const entry of dirHandle.values()) map.set(entry.name,entry);
+  return map;
+}
+
+async function openFolder(){
+  try{
+    dirHandle=await showDirectoryPicker({mode:'readwrite'});
+    await refreshTree();
+    saveHandle(dirHandle);
+    // 自动展开侧栏
+    const s=$('sidebar'); if(s&&s.classList.contains('collapsed')){s.classList.remove('collapsed');$('sideToggle').textContent='◀';}
+  }catch(e){if(e.name!=='AbortError') console.error(e)}
+}
+
+async function refreshTree(){
+  if(!dirHandle)return;
+  tree.textContent='';
+  const entries=await iterToMap(dirHandle);
+  buildTree(tree,entries);
+  if(!tree.children.length){
+    tree.innerHTML='<div class="tree-empty">此文件夹没有 .md 文件</div>';
+  }
+}
+
+function saveHandle(handle){
+  const req=indexedDB.open('mdViewerDB',2);
+  req.onupgradeneeded=()=>{req.result.createObjectStore('handles');};
+  req.onsuccess=()=>{
+    const tx=req.result.transaction('handles','readwrite');
+    tx.objectStore('handles').put(handle,'dirHandle');
+  };
+}
+async function restoreHandle(){
+  return new Promise(resolve=>{
+    const req=indexedDB.open('mdViewerDB',2);
+    req.onupgradeneeded=()=>{req.result.createObjectStore('handles');};
+    req.onsuccess=async()=>{
+      const tx=req.result.transaction('handles','readonly');
+      const get=tx.objectStore('handles').get('dirHandle');
+      get.onsuccess=async()=>{
+        const h=get.result;
+        if(h){
+          const opts={mode:'readwrite'};
+          const ok=(await h.queryPermission(opts)==='granted')||(await h.requestPermission(opts)==='granted');
+          if(ok){dirHandle=h;await refreshTree();resolve(true);return}
+        }
+        resolve(false);
+      };
+      get.onerror=()=>resolve(false);
+    };
+  });
+}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+// ── $ 检查 ──
+function _checkMathDelimiters(text){
+  if(!text) return;
+  const lines=text.split('\n');
+  let warn=[];
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
+    if(!line.includes('$')) continue;
+    const dds=line.match(/\$\$/g);
+    const ds=line.match(/(?<!\$)\$(?!\$)/g);
+    const ddCnt=dds?dds.length*2:0;
+    const dCnt=ds?ds.length:0;
+    if((ddCnt+dCnt)%2!==0) warn.push((i+1)+': '+line.trim().substring(0,40));
+  }
+  if(warn.length){
+    pathBar.textContent=currentFileName+' ⚠️ '+(warn.length)+'行 $ 不成对';
+    pathBar.title=warn.join('\n');
+  }
+}
+
+// ── 拖放 ──
+$('tocToggle').onclick=()=>{_toggleTOC()};
+$('tocBtn').onclick=()=>{_toggleTOC()};
+function _toggleTOC(){
+  const tp=$('tocPanel');
+  if(tp.classList.contains('visible')){tp.classList.remove('visible');$('tocBtn').style.display='inline-block';}
+  else{tp.classList.add('visible');$('tocBtn').style.display='none';}
+}
+document.body.ondragover=e=>{e.preventDefault(); preview.style.outline='2px dashed #007acc'};
+document.body.ondragleave=e=>{
+  if(!document.body.contains(e.relatedTarget)){preview.style.outline=''}
+};
+document.body.ondrop=async e=>{
+  e.preventDefault();
+  preview.style.outline='';
+  try{
+    for(const item of [...e.dataTransfer.items]){
+      if(item.kind==='file'){
+        const handle=await item.getAsFileSystemHandle();
+        if(handle?.kind==='directory'){dirHandle=handle;saveHandle(dirHandle);await refreshTree();return}
+      }
+    }
+  }catch(_){}
+  const files=[...e.dataTransfer.files].filter(f=>f.name.endsWith('.md')||f.type==='text/markdown');
+  if(files.length){
+    const text=await files[0].text();
+    currentMDText=text;
+    currentFileHandle=null;
+    currentFileName=files[0].name;
+    _showPreview(text,files[0].name);
+  }
+};
+
+// ── 按钮 / 键盘 ──
+$('openFolderBtn').onclick=openFolder;
+$('openFolderLink').onclick=openFolder;
+$('openFolderLink2').onclick=openFolder;
+$('refreshBtn').onclick=refreshTree;
+document.onkeydown=e=>{
+  if(e.ctrlKey&&e.key==='o'){e.preventDefault();openFolder()}
+  if(e.ctrlKey&&e.key==='s'){e.preventDefault();saveFile()}
+};
+
+// ── 侧栏折叠 ──
+$('sideToggle').onclick=()=>{
+  const s=$('sidebar'),t=$('sideToggle');
+  if(s.classList.contains('collapsed')){s.classList.remove('collapsed');t.textContent='◀';}
+  else{s.classList.add('collapsed');t.textContent='▶';}
+};
+
+// ── 拖拽调整面板宽度 ──
+(function(){
+  const handles=[
+    ['handleSidebar',$('sidebar'),250,'mdv_sideW'],
+    ['handleToolbar',$('toolbar'),300,'mdv_tbW']
+  ];
+  handles.forEach(([hid,target,defW,key])=>{
+    const h=$(hid); if(!h) return;
+    let dragging=false,startX,startW;
+    if(key){const v=localStorage.getItem(key);if(v)target.style.width=v+'px';}
+    h.addEventListener('mousedown',e=>{
+      dragging=true;startX=e.clientX;
+      startW=parseInt(getComputedStyle(target).width)||defW;
+      h.classList.add('dragging');document.body.style.cursor='col-resize';document.body.style.userSelect='none';
+    });
+    document.addEventListener('mousemove',e=>{
+      if(!dragging) return;
+      const w=Math.max(60,startW+(e.clientX-startX));
+      target.style.width=w+'px';if(key)localStorage.setItem(key,w);
+    });
+    document.addEventListener('mouseup',()=>{
+      if(!dragging) return;
+      dragging=false;h.classList.remove('dragging');document.body.style.cursor='';document.body.style.userSelect='';
+    });
+  });
+})();
+
+// ── 初始化 ──
+_initTb();
+_initStructBtns();
+
+// ═══ 公式编辑器 ═══
+function feSetMode(mode){// mode: 'sym'|'form'
+  $('tbModeSym').classList.toggle('active',mode==='sym');
+  $('tbModeForm').classList.toggle('active',mode==='form');
+  $('tbSymWrap').style.display=mode==='sym'?'block':'none';
+  $('tbFormWrap').style.display=mode==='form'?'block':'none';
+}
+$('tbModeSym').onclick=()=>feSetMode('sym');
+$('tbModeForm').onclick=()=>feSetMode('form');
+
+// 槽位：contenteditable div + CSS ::before 占位符
+function feSlot(ph){return '<div class="fe-slot" contenteditable="true" data-ph="'+ph+'" oninput="feUpdate()" onfocus="feOnFocus(this)" onblur="feOnBlur(this)"></div>';}
+function feOnFocus(el){if(!el.textContent.trim()) el.textContent='';}
+function feOnBlur(el){if(!el.textContent.trim()) el.textContent=''; feUpdate();}
+
+function feAddFrac(){
+  $('feCanvas').insertAdjacentHTML('beforeend','<span class="fe-frac">'+feSlot('a')+'<div class="fe-frac-line"></div>'+feSlot('b')+'</span>');
+  feUpdate();
+}
+function feAddSqrt(){
+  $('feCanvas').insertAdjacentHTML('beforeend','<span class="fe-sqrt"><span class="fe-sqrt-sign">√</span><span class="fe-sqrt-overline">'+feSlot('x')+'</span></span>');
+  feUpdate();
+}
+function feAddInt(){
+  $('feCanvas').insertAdjacentHTML('beforeend','<span class="fe-int"><span class="fe-int-sym">∫</span>'+feSlot('a')+'<sup>'+feSlot('b')+'</sup>'+feSlot('f')+'<span>d</span>'+feSlot('x')+'</span>');
+  feUpdate();
+}
+function feAddSup(){
+  $('feCanvas').insertAdjacentHTML('beforeend','<span class="fe-sup">'+feSlot('x')+'<sup>'+feSlot('n')+'</sup></span>');
+  feUpdate();
+}
+function feAddSum(){
+  $('feCanvas').insertAdjacentHTML('beforeend','<span class="fe-sum"><span class="fe-sum-sym">Σ</span>'+feSlot('i=1')+'<sup>'+feSlot('n')+'</sup>'+feSlot('x')+'</span>');
+  feUpdate();
+}
+function feAddLim(){
+  $('feCanvas').insertAdjacentHTML('beforeend','<span class="fe-lim"><span class="fe-lim-text">lim</span><span class="fe-lim-sub">'+feSlot('x→0')+'</span>'+feSlot('f')+'</span>');
+  feUpdate();
+}
+function feAddProd(){
+  $('feCanvas').insertAdjacentHTML('beforeend','<span class="fe-sum"><span class="fe-sum-sym">Π</span>'+feSlot('i=1')+'<sup>'+feSlot('n')+'</sup>'+feSlot('x')+'</span>');
+  feUpdate();
+}
+function feAddMtx(){
+  $('feCanvas').insertAdjacentHTML('beforeend','<span class="fe-mtx">[ '+feSlot('a')+' '+feSlot('b')+' ; '+feSlot('c')+' '+feSlot('d')+' ]</span>');
+  feUpdate();
+}
+
+function feClear(){
+  $('feCanvas').innerHTML='<span class="hint">点下方模板添加公式</span>';
+  feUpdate();
+}
+
+function feUpdate(){
+  const c=$('feCanvas');
+  // 移除提示文字
+  const hint=c.querySelector('.hint');
+  if(hint) hint.remove();
+  let latex='';
+  c.querySelectorAll('.fe-frac').forEach(blk=>{
+    const s=blk.querySelectorAll('.fe-slot');
+    const v=[...s].map(sl=>sl.textContent.trim()||sl.dataset.ph||'▢');
+    latex+='\\frac{'+v[0]+'}{'+v[1]+'}';
+  });
+  c.querySelectorAll('.fe-sqrt').forEach(blk=>{
+    const s=blk.querySelectorAll('.fe-slot');
+    const v=[...s].map(sl=>sl.textContent.trim()||sl.dataset.ph||'▢');
+    latex+='\\sqrt{'+v[0]+'}';
+  });
+  c.querySelectorAll('.fe-int').forEach(blk=>{
+    const s=blk.querySelectorAll('.fe-slot');
+    const v=[...s].map(sl=>sl.textContent.trim()||sl.dataset.ph||'');
+    latex+='\\int_{'+v[0]+'}^{'+v[1]+'} '+v[2]+' d'+v[3];
+  });
+  c.querySelectorAll('.fe-sup').forEach(blk=>{
+    const s=blk.querySelectorAll('.fe-slot');
+    const v=[...s].map(sl=>sl.textContent.trim()||sl.dataset.ph||'▢');
+    latex+=v[0]+'^{'+v[1]+'}';
+  });
+  c.querySelectorAll('.fe-sum').forEach(blk=>{
+    const s=blk.querySelectorAll('.fe-slot');
+    const v=[...s].map(sl=>sl.textContent.trim()||sl.dataset.ph||'');
+    const sym=blk.querySelector('.fe-sum-sym').textContent;
+    latex+='\\'+sym.toLowerCase()+'_'+'{'+v[0]+'}^{'+v[1]+'} '+v[2];
+  });
+  c.querySelectorAll('.fe-lim').forEach(blk=>{
+    const s=blk.querySelectorAll('.fe-slot');
+    const v=[...s].map(sl=>sl.textContent.trim()||sl.dataset.ph||'');
+    latex+='\\lim_{'+v[0]+'} '+v[1];
+  });
+  c.querySelectorAll('.fe-mtx').forEach(blk=>{
+    const s=blk.querySelectorAll('.fe-slot');
+    const v=[...s].map(sl=>sl.textContent.trim()||sl.dataset.ph||'0');
+    latex+='\\begin{bmatrix}'+v[0]+' & '+v[1]+' \\\\ '+v[2]+' & '+v[3]+' \\end{bmatrix}';
+  });
+
+  $('feLatexCode').textContent=latex||'(空)';
+
+  // KaTeX 实时预览
+  const pv=$('fePreview');
+  if(latex && typeof katex !== 'undefined'){
+    try{
+      pv.innerHTML=katex.renderToString(latex,{throwOnError:false,displayMode:true});
+    }catch(e){pv.innerHTML='<span style="color:#c44">'+e.message+'</span>';}
+  }else{
+    pv.innerHTML=latex?'<span style="color:#aaa;font-family:Times New Roman,serif;font-size:16px">$$'+latex+'$$</span>':'<span style="color:#555">(空)</span>';
+  }
+}
+
+function feInsert(){
+  let l=$('feLatexCode').textContent;
+  if(l==='(空)') return;
+  if(!l.startsWith('$')) l='$'+l+'$';
+  const ta=document.querySelector('.block-editor'); if(!ta) return;
+  const s=ta.selectionStart;
+  ta.value=ta.value.substring(0,s)+l+ta.value.substring(s);
+  ta.selectionStart=ta.selectionEnd=s+l.length;
+  ta.focus(); _autoSizeTA(ta); _livePreview();
+}
+
+restoreHandle();
+
+// ── 加载文件（Python 助手） ──
+(async function(){
+  const params = new URLSearchParams(location.search);
+  const filePath = params.get('file');
+  if(!filePath) return;
+  try {
+    const resp = await fetch('/api/read?path='+encodeURIComponent(filePath));
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    const data = await resp.json();
+    if(data.error) throw new Error(data.error);
+    currentMDText=data.content;
+    currentFilePath=filePath;
+    const name = filePath.split(/[\\/]/).pop() || 'file.md';
+    currentFileName=name;
+    _showPreview(data.content,name);
+  } catch(e) { console.error('Failed to load file:', e); }
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script>if(typeof renderMathInElement==='function')renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});</script>
+</body>
+</html>
