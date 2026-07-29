@@ -125,8 +125,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .fe-int-sym{font-size:22px;color:#ddd;font-family:'Times New Roman',serif}
 .fe-sup{display:inline-flex;align-items:flex-start;vertical-align:middle;margin:0 4px}
 .fe-sup sup{font-size:12px;color:#ccc;margin-left:1px}
-.fe-sum{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 4px}
-.fe-sum-sym{font-size:24px;color:#ddd;font-family:'Times New Roman',serif}
+.fe-sum{display:inline-grid;grid-template-areas:'sup sup .''sym . expr''sub sub .';grid-template-columns:auto auto auto;align-items:center;justify-items:center;vertical-align:middle;margin:0 4px;column-gap:4px;row-gap:1px}
+.fe-sum-sym{grid-area:sym;font-size:28px;color:#ddd;font-family:'Times New Roman',serif}
+.fe-sum-sub{grid-area:sub;font-size:13px}
+.fe-sum-sup{grid-area:sup;font-size:13px}
+.fe-sum-expr{grid-area:expr;align-self:center}
 .fe-lim{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 4px}
 .fe-lim-text{font-size:13px;color:#ddd}
 .fe-lim-sub{font-size:13px;color:#ccc}
@@ -155,7 +158,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v3.2.2</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v3.2.3</span></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
 </div>
@@ -989,7 +992,7 @@ function feAddSup(){
   feUpdate();
 }
 function feAddSum(){
-  $('feCanvas').insertAdjacentHTML('beforeend','<span class="fe-sum"><span class="fe-sum-sym">Σ</span>'+feSlot('i=1')+'<sup>'+feSlot('n')+'</sup>'+feSlot('x')+'</span>');
+  $('feCanvas').insertAdjacentHTML('beforeend','<span class="fe-sum"><span class="fe-sum-sup">'+feSlot('n')+'</span><span class="fe-sum-sym">Σ</span><span class="fe-sum-sub">'+feSlot('i=1')+'</span><span class="fe-sum-expr">'+feSlot('x')+'</span></span>');
   feUpdate();
 }
 function feAddLim(){
@@ -997,7 +1000,7 @@ function feAddLim(){
   feUpdate();
 }
 function feAddProd(){
-  $('feCanvas').insertAdjacentHTML('beforeend','<span class="fe-sum"><span class="fe-sum-sym">Π</span>'+feSlot('i=1')+'<sup>'+feSlot('n')+'</sup>'+feSlot('x')+'</span>');
+  $('feCanvas').insertAdjacentHTML('beforeend','<span class="fe-sum"><span class="fe-sum-sup">'+feSlot('n')+'</span><span class="fe-sum-sym">Π</span><span class="fe-sum-sub">'+feSlot('i=1')+'</span><span class="fe-sum-expr">'+feSlot('x')+'</span></span>');
   feUpdate();
 }
 function feAddMtx(){
@@ -1075,7 +1078,7 @@ function feUpdate(){
     const sym=blk.querySelector('.fe-sum-sym').textContent;
     // Σ→sum, Π→prod（toLowerCase 会变成 σ/π，KaTeX 不认识）
     const symCmd={'Σ':'sum','Π':'prod'};
-    latex+='\\'+(symCmd[sym]||sym.toLowerCase())+'_'+'{'+v[0]+'}^{'+v[1]+'} '+v[2];
+    latex+='\\'+(symCmd[sym]||sym.toLowerCase())+'_'+'{'+v[1]+'}^{'+v[0]+'} '+v[2];
   });
   c.querySelectorAll('.fe-lim').forEach(blk=>{
     const s=blk.querySelectorAll('.fe-slot');
