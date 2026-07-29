@@ -119,14 +119,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .fe-sqrt-sign{font-size:20px;color:#ddd;margin-right:1px;font-family:'Times New Roman',serif}
 .fe-sqrt-overline{border-top:2px solid #aaa;padding-top:1px;margin-left:-1px}
 .fe-slot{display:inline-block;min-width:32px;padding:4px 8px;border:2px dashed #888;border-radius:4px;background:#2a2a2a;color:#e0e0e0;text-align:center;font-size:16px;font-family:'Times New Roman',serif;cursor:text;vertical-align:middle;outline:none}
-.fe-slot:focus{border-color:#5aafff;background:#1a3a4a;border-style:solid}
-.fe-slot:empty::before{content:attr(data-ph);color:#ccc}
-.fe-int{display:inline-grid;grid-template-areas:'sup sup .''sym . expr''sub sub var';grid-template-columns:auto auto auto;align-items:center;justify-items:center;vertical-align:middle;margin:0 4px;column-gap:2px;row-gap:1px}
+.fe-frac{display:inline-grid;grid-template-areas:'num''line''den';grid-template-columns:1fr;justify-items:center;vertical-align:middle;margin:0 4px;row-gap:2px}
+.fe-frac-num{grid-area:num}
+.fe-frac-den{grid-area:den}
+.fe-frac-line{grid-area:line;width:100%;min-width:40px;height:2px;background:#aaa}
+.fe-int{display:inline-grid;grid-template-areas:'. sup .''sym . expr''. sub .';grid-template-columns:auto 8px 1fr;align-items:center;justify-items:center;vertical-align:middle;margin:0 4px;column-gap:2px;row-gap:1px}
 .fe-int-sym{grid-area:sym;font-size:26px;color:#ddd;font-family:'Times New Roman',serif}
 .fe-int-sub{grid-area:sub;font-size:13px}
 .fe-int-sup{grid-area:sup;font-size:13px}
-.fe-int-expr{grid-area:expr}
-.fe-int-var{grid-area:var}
+.fe-int-expr{grid-area:expr;display:flex;gap:2px;align-items:baseline}
+.fe-lim{display:inline-grid;grid-template-areas:'text expr''sub .';grid-template-columns:auto auto;align-items:end;justify-items:center;vertical-align:middle;margin:0 4px;column-gap:4px;row-gap:1px}
+.fe-lim-text{grid-area:text;font-size:14px;color:#ddd}
+.fe-lim-sub{grid-area:sub;font-size:13px;color:#ccc}
+.fe-lim-expr{grid-area:expr}
 .fe-sup{display:inline-flex;align-items:baseline;vertical-align:middle;margin:0 4px}
 .fe-sup .fe-sup-dot{color:#555;font-size:14px;margin-right:1px}
 .fe-sup sup{font-size:13px;color:#ccc}
@@ -163,7 +168,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v3.2.8</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v3.2.9</span></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
 </div>
@@ -1006,7 +1011,7 @@ function _slotLatex(slot){
 function _feTarget(){return _focusedSlot||$('feCanvas');}
 
 function feAddFrac(){
-  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-frac">'+feSlot('a')+'<div class="fe-frac-line"></div>'+feSlot('b')+'</span>');
+  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-frac"><span class="fe-frac-num">'+feSlot('a')+'</span><div class="fe-frac-line"></div><span class="fe-frac-den">'+feSlot('b')+'</span></span>');
   feUpdate();
 }
 function feAddSqrt(){
@@ -1014,7 +1019,7 @@ function feAddSqrt(){
   feUpdate();
 }
 function feAddInt(){
-  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-int"><span class="fe-int-sym">∫</span><span class="fe-int-sub">'+feSlot('a')+'</span><span class="fe-int-sup"><sup>'+feSlot('b')+'</sup></span><span class="fe-int-expr">'+feSlot('f(x)')+'</span><span class="fe-int-var"><span>d</span>'+feSlot('x')+'</span></span>');
+  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-int"><span class="fe-int-sym">∫</span><span class="fe-int-sub">'+feSlot('a')+'</span><span class="fe-int-sup"><sup>'+feSlot('b')+'</sup></span><span class="fe-int-expr">'+feSlot('f(x)')+'<span>d</span>'+feSlot('x')+'</span></span>');
   feUpdate();
 }
 function feAddSup(){
@@ -1026,7 +1031,7 @@ function feAddSum(){
   feUpdate();
 }
 function feAddLim(){
-  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-lim"><span class="fe-lim-text">lim</span><span class="fe-lim-sub">'+feSlot('x→0')+'</span>'+feSlot('f')+'</span>');
+  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-lim"><span class="fe-lim-text">lim</span><span class="fe-lim-sub">'+feSlot('x→0')+'</span><span class="fe-lim-expr">'+feSlot('f')+'</span></span>');
   feUpdate();
 }
 function feAddProd(){
