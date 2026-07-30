@@ -110,6 +110,42 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .fe-tpl-btn{flex:1 1 calc(50% - 4px);padding:6px 4px;background:#3c3c3c;border:1px solid #555;border-radius:4px;cursor:pointer;color:#ddd;font-size:11px;text-align:center;transition:.1s}
 .fe-tpl-btn:hover{background:#505050;border-color:#007acc}
 .fe-tpl-btn .fe-vis{font-size:16px;color:#ccc;margin-top:2px;font-family:'Times New Roman',serif}
+/* 可视化公式块 + Canvas */
+.fe-canvas{min-height:80px;padding:10px;background:#1e1e1e;border:1px solid #555;border-radius:4px;margin-bottom:6px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;font-size:16px;font-family:'Times New Roman',serif;color:#ddd}
+.fe-canvas .hint{color:#555;font-size:13px;width:100%}
+.fe-slot{display:inline-block;min-width:32px;padding:4px 8px;border:2px dashed #888;border-radius:4px;background:#2a2a2a;color:#e0e0e0;text-align:center;font-size:16px;font-family:'Times New Roman',serif;cursor:text;vertical-align:middle;outline:none}
+.fe-slot:focus{border-color:#5aafff;background:#1a3a4a;border-style:solid}
+.fe-slot:empty::before{content:attr(data-ph);color:#ccc}
+.fe-frac{display:inline-grid;grid-template-areas:'num''line''den';grid-template-columns:1fr;justify-items:center;vertical-align:middle;margin:0 4px;row-gap:2px}
+.fe-frac-num{grid-area:num}.fe-frac-den{grid-area:den}
+.fe-frac-line{grid-area:line;width:100%;min-width:40px;height:2px;background:#aaa}
+.fe-sqrt{display:inline-flex;align-items:center;vertical-align:middle;margin:0 4px}
+.fe-sqrt-sign{font-size:20px;color:#ddd;margin-right:1px;font-family:'Times New Roman',serif}
+.fe-sqrt-overline{border-top:2px solid #aaa;padding-top:1px;margin-left:-1px}
+.fe-int{display:inline-grid;grid-template-areas:'. sup .''sym . expr''. sub .';grid-template-columns:auto 8px 1fr;align-items:center;justify-items:center;vertical-align:middle;margin:0 4px;column-gap:2px;row-gap:1px}
+.fe-int-sym{grid-area:sym;font-size:26px;color:#ddd;font-family:'Times New Roman',serif}
+.fe-int-sub{grid-area:sub;font-size:13px}.fe-int-sup{grid-area:sup;font-size:13px}
+.fe-int-expr{grid-area:expr;display:flex;gap:2px;align-items:baseline}
+.fe-sup{display:inline-flex;align-items:baseline;vertical-align:middle;margin:0 4px}
+.fe-sup .fe-sup-dot{color:#555;font-size:14px;margin-right:1px}
+.fe-sup sup{font-size:13px;color:#ccc}
+.fe-sum{display:inline-grid;grid-template-areas:'sup sup .''sym . expr''sub sub .';grid-template-columns:auto auto auto;align-items:center;justify-items:center;vertical-align:middle;margin:0 4px;column-gap:4px;row-gap:1px}
+.fe-sum-sym{grid-area:sym;font-size:28px;color:#ddd;font-family:'Times New Roman',serif}
+.fe-sum-sub{grid-area:sub;font-size:13px}.fe-sum-sup{grid-area:sup;font-size:13px}
+.fe-sum-expr{grid-area:expr;align-self:center}
+.fe-lim{display:inline-grid;grid-template-areas:'text expr''sub .';grid-template-columns:auto auto;align-items:center;justify-items:start;vertical-align:middle;margin:0 4px;column-gap:6px;row-gap:1px}
+.fe-lim-text{grid-area:text;font-size:14px;color:#ddd}
+.fe-lim-sub{grid-area:sub;font-size:13px;color:#ccc}.fe-lim-expr{grid-area:expr}
+.fe-mtx{display:inline-flex;align-items:center;vertical-align:middle;margin:0 4px;font-size:20px;color:#aaa}
+.fe-latex{padding:4px 8px;background:#1e1e1e;border-radius:3px;margin:4px 0;font-size:11px;color:#888}
+.fe-latex code{color:#f0a060;font-size:11px}
+.fe-actions{display:flex;gap:4px}
+.fe-insert-btn{flex:1;padding:7px;background:#0e639c;border:none;border-radius:4px;color:#fff;cursor:pointer;font-size:13px}
+.fe-insert-btn:hover{background:#007acc}
+.fe-clear-btn{flex:1;padding:7px;background:#555;border:none;border-radius:4px;color:#ccc;cursor:pointer;font-size:12px}
+.fe-clear-btn:hover{background:#666}
+.fe-preview-label{font-size:10px;color:#666;margin:4px 0 2px;text-transform:uppercase;letter-spacing:1px}
+.fe-preview-box{min-height:36px;padding:8px;background:#1e1e1e;border:1px solid #444;border-radius:4px;font-size:15px;color:#ddd;overflow-x:auto}
 </style>
 </head>
 <body>
@@ -125,7 +161,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v3.6.2</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v3.6.3</span></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
 </div>
@@ -146,16 +182,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
   <div class="fe-label">📐 常用公式</div>
   <div class="fe-tpl-grid">
-      <button class="fe-tpl-btn" onclick="_insertSymbol('\\\\frac{}{}')">分式<div class="fe-vis">▢/▢</div></button>
-      <button class="fe-tpl-btn" onclick="_insertSymbol('\\\\sqrt{}')">根号<div class="fe-vis">√▢</div></button>
-      <button class="fe-tpl-btn" onclick="_insertSymbol('^{}')">上下标<div class="fe-vis">·ⁿ</div></button>
+      <button class="fe-tpl-btn" onclick="feAddFrac()">分式<div class="fe-vis">▢/▢</div></button>
+      <button class="fe-tpl-btn" onclick="feAddSqrt()">根号<div class="fe-vis">√▢</div></button>
+      <button class="fe-tpl-btn" onclick="feAddSup()">上下标<div class="fe-vis">·ⁿ</div></button>
   </div>
   <div class="fe-label" style="margin-top:8px">📊 微积分</div>
   <div class="fe-tpl-grid">
-      <button class="fe-tpl-btn" onclick="_insertSymbol('\\\\int_{}^{} dx')">积分<div class="fe-vis">∫fdx</div></button>
-      <button class="fe-tpl-btn" onclick="_insertSymbol('\\\\lim_{} ')">极限<div class="fe-vis">lim</div></button>
-      <button class="fe-tpl-btn" onclick="_insertSymbol('\\\\sum_{}^{} ')">求和<div class="fe-vis">Σx</div></button>
-      <button class="fe-tpl-btn" onclick="_insertSymbol('\\\\prod_{}^{} ')">累乘<div class="fe-vis">Πx</div></button>
+      <button class="fe-tpl-btn" onclick="feAddInt()">积分<div class="fe-vis">∫fdx</div></button>
+      <button class="fe-tpl-btn" onclick="feAddLim()">极限<div class="fe-vis">lim</div></button>
+      <button class="fe-tpl-btn" onclick="feAddSum()">求和<div class="fe-vis">Σx</div></button>
+      <button class="fe-tpl-btn" onclick="feAddProd()">累乘<div class="fe-vis">Πx</div></button>
   </div>
   <div class="fe-label" style="margin-top:8px">📏 线性代数</div>
   <div class="fe-tpl-grid">
@@ -202,6 +238,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="fe-tpl-btn" onclick="_insertSymbol('\\log')">log</button>
       <button class="fe-tpl-btn" onclick="_insertSymbol('e^{}')">e^□</button>
   </div>
+  </div>
+    <div id="feCanvas" class="fe-canvas"><span class="hint">👆 点模板添加，点槽位可嵌套</span></div>
+    <div id="feLatex" class="fe-latex">LaTeX: <code id="feLatexCode"></code></div>
+    <div class="fe-actions">
+      <button class="fe-clear-btn" onclick="feClear()">清空</button>
+      <button class="fe-insert-btn" id="feInsertBtn" onclick="feInsert()">插入文档</button>
+    </div>
+    <div class="fe-preview-label">预览</div>
+    <div class="fe-preview-box" id="fePreview"></div>
   </div>
   <div class="tb-preview" id="tbPreview"></div>
 </div>
@@ -975,7 +1020,53 @@ _initStructBtns();
 
 // ═══ 公式编辑器 ═══
 
-// 矩阵维度选择器 —— 直接插入 LaTeX 到编辑框
+// 槽位
+let _focusedSlot=null;
+function feSlot(ph){return '<div class="fe-slot" contenteditable="true" data-ph="'+ph+'" oninput="feUpdate()" onfocus="feOnFocus(this)" onblur="feOnBlur(this)"></div>';}
+function feOnFocus(el){_focusedSlot=el;}
+function feOnBlur(el){if(!el.textContent.trim()) el.textContent=''; feUpdate();}
+function _slotLatex(slot){
+  try{
+    const frac=slot.querySelector('.fe-frac'); if(frac) return genBlockLatex(frac);
+    const sqrt=slot.querySelector('.fe-sqrt'); if(sqrt) return genBlockLatex(sqrt);
+    const int=slot.querySelector('.fe-int'); if(int) return genBlockLatex(int);
+    const sup=slot.querySelector('.fe-sup'); if(sup) return genBlockLatex(sup);
+    const sum=slot.querySelector('.fe-sum'); if(sum) return genBlockLatex(sum);
+    const lim=slot.querySelector('.fe-lim'); if(lim) return genBlockLatex(lim);
+    const mtx=slot.querySelector('.fe-mtx'); if(mtx) return genBlockLatex(mtx);
+  }catch(e){}
+  return slot.textContent.trim()||slot.dataset.ph||'';
+}
+function _feTarget(){return _focusedSlot||$('feCanvas');}
+
+function feAddFrac(){
+  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-frac"><span class="fe-frac-num">'+feSlot('a')+'</span><div class="fe-frac-line"></div><span class="fe-frac-den">'+feSlot('b')+'</span></span>');
+  feUpdate();
+}
+function feAddSqrt(){
+  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-sqrt"><span class="fe-sqrt-sign">√</span><span class="fe-sqrt-overline">'+feSlot('x')+'</span></span>');
+  feUpdate();
+}
+function feAddInt(){
+  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-int"><span class="fe-int-sym">∫</span><span class="fe-int-sub">'+feSlot('a')+'</span><span class="fe-int-sup"><sup>'+feSlot('b')+'</sup></span><span class="fe-int-expr">'+feSlot('f(x)')+'<span>d</span>'+feSlot('x')+'</span></span>');
+  feUpdate();
+}
+function feAddSup(){
+  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-sup"><span class="fe-sup-dot">·</span><sup>'+feSlot('n')+'</sup></span>');
+  feUpdate();
+}
+function feAddSum(){
+  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-sum"><span class="fe-sum-sup">'+feSlot('n')+'</span><span class="fe-sum-sym">Σ</span><span class="fe-sum-sub">'+feSlot('i=1')+'</span><span class="fe-sum-expr">'+feSlot('x()')+'</span></span>');
+  feUpdate();
+}
+function feAddLim(){
+  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-lim"><span class="fe-lim-text">lim</span><span class="fe-lim-sub">'+feSlot('x→0')+'</span><span class="fe-lim-expr">'+feSlot('f')+'</span></span>');
+  feUpdate();
+}
+function feAddProd(){
+  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-sum"><span class="fe-sum-sup">'+feSlot('n')+'</span><span class="fe-sum-sym">Π</span><span class="fe-sum-sub">'+feSlot('i=1')+'</span><span class="fe-sum-expr">'+feSlot('x()')+'</span></span>');
+  feUpdate();
+}
 function feAddMtx(){
   const pk=$('tbGridPicker'); const cells=$('tbGridCells'); const label=$('tbGridLabel');
   const maxC=6,maxR=5; let hoverC=3,hoverR=2;
@@ -989,16 +1080,7 @@ function feAddMtx(){
         label.textContent=hoverC+'×'+hoverR;
         document.querySelectorAll('.tb-grid-cell').forEach((el,i)=>{el.classList.toggle('hover',(i%maxC)<=c&&Math.floor(i/maxC)<=r);});
       });
-      cell.addEventListener('click',()=>{
-        let latex='\\begin{bmatrix}';
-        for(let r=0;r<hoverR;r++){
-          if(r>0) latex+=' \\\\ ';
-          latex+=Array(hoverC).fill('').join(' & ');
-        }
-        latex+=' \\end{bmatrix}';
-        _insertSymbol(latex);
-        pk.classList.remove('show');
-      });
+      cell.addEventListener('click',()=>{feInsertMtx(hoverC,hoverR);pk.classList.remove('show');});
       row.appendChild(cell);
     }
     cells.appendChild(row);
@@ -1006,6 +1088,73 @@ function feAddMtx(){
   label.textContent='3×2';
   document.querySelectorAll('.tb-grid-cell').forEach((el,i)=>{el.classList.toggle('hover',(i%maxC)<3&&Math.floor(i/maxC)<2);});
   pk.classList.add('show');
+}
+function feInsertMtx(cols,rows){
+  let inner='';
+  for(let r=0;r<rows;r++){
+    for(let c=0;c<cols;c++){
+      inner+=feSlot(String.fromCharCode(97+r*cols+c));
+      if(c<cols-1) inner+=' ';
+    }
+    if(r<rows-1) inner+=' ; ';
+  }
+  _feTarget().insertAdjacentHTML('beforeend',
+    '<span class="fe-mtx" data-cols="'+cols+'" data-rows="'+rows+'">[ '+inner+' ]</span>');
+  feUpdate();
+}
+function feClear(){
+  _focusedSlot=null;
+  $('feCanvas').innerHTML='<span class="hint">👆 点模板添加，点槽位可嵌套</span>';
+  feUpdate();
+}
+function genBlockLatex(blk){
+  const slots=[...blk.querySelectorAll('.fe-slot')];
+  const v=slots.map(s=>_slotLatex(s));
+  if(blk.classList.contains('fe-frac')) return '\\frac{'+v[0]+'}{'+v[1]+'}';
+  if(blk.classList.contains('fe-sqrt')) return '\\sqrt{'+v[0]+'}';
+  if(blk.classList.contains('fe-int')) return '\\int_{'+v[0]+'}^{'+v[1]+'} '+v[2]+' d'+v[3];
+  if(blk.classList.contains('fe-sup')) return '^{'+v[0]+'}';
+  if(blk.classList.contains('fe-sum')){
+    const sym=blk.querySelector('.fe-sum-sym').textContent;
+    const symCmd={'Σ':'sum','Π':'prod'};
+    return '\\'+(symCmd[sym]||sym.toLowerCase())+'_{'+v[1]+'}^{'+v[0]+'} '+v[2];
+  }
+  if(blk.classList.contains('fe-lim')) return '\\lim_{'+v[0]+'} '+v[1];
+  if(blk.classList.contains('fe-mtx')){
+    const cols=parseInt(blk.dataset.cols)||2, rows=v.length/cols;
+    let m='\\begin{bmatrix}';
+    for(let r=0;r<rows;r++){if(r>0) m+=' \\\\ '; m+=v.slice(r*cols,(r+1)*cols).join(' & ');}
+    return m+' \\end{bmatrix}';
+  }
+  return '';
+}
+function feUpdate(){
+  const c=$('feCanvas');
+  const hint=c.querySelector('.hint');
+  if(hint) hint.remove();
+  let latex='';
+  c.querySelectorAll(':scope>.fe-frac,:scope>.fe-sqrt,:scope>.fe-int,:scope>.fe-sup,:scope>.fe-sum,:scope>.fe-lim,:scope>.fe-mtx').forEach(blk=>{
+    latex+=genBlockLatex(blk);
+  });
+  $('feLatexCode').textContent=latex||'(空)';
+  const pv=$('fePreview');
+  if(latex && typeof katex !== 'undefined'){
+    try{
+      pv.innerHTML=katex.renderToString(latex,{throwOnError:false,displayMode:true});
+    }catch(e){pv.innerHTML='<span style="color:#c44">'+e.message+'</span>';}
+  }else{
+    pv.innerHTML=latex?'<span style="color:#aaa;font-family:Times New Roman,serif;font-size:16px">$$'+latex+'$$</span>':'<span style="color:#555">(空)</span>';
+  }
+}
+function feInsert(){
+  let l=$('feLatexCode').textContent;
+  if(l==='(空)') return;
+  if(!l.startsWith('$')) l='$'+l+'$';
+  const ta=document.querySelector('.block-editor'); if(!ta) return;
+  const s=ta.selectionStart;
+  ta.value=ta.value.substring(0,s)+l+ta.value.substring(s);
+  ta.selectionStart=ta.selectionEnd=s+l.length;
+  ta.focus(); _autoSizeTA(ta); _livePreview();
 }
 restoreHandle();
 
