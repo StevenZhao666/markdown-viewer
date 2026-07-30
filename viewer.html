@@ -1005,6 +1005,7 @@ function feAddMtx(){
   label.textContent='3×2';
   document.querySelectorAll('.tb-grid-cell').forEach((el,i)=>{el.classList.toggle('hover',(i%maxC)<3&&Math.floor(i/maxC)<2);});
   pk.classList.add('show');
+}
 restoreHandle();
 
 // ── 加载文件（Python 助手） ──
