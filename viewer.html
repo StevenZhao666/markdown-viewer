@@ -517,7 +517,7 @@ function _editBlock(idx){
   ta.focus();
   _autoSizeTA(ta);
   preview.scrollTop=st; // 恢复滚动位置
-  // 工具栏不自动弹出，由Ctrl+T切换
+  // 工具栏不自动弹出，由📐按钮切换
   // 完成按钮
   const doneBtn=document.getElementById('blockDone');
   if(doneBtn) doneBtn.onclick=(e)=>{e.stopPropagation();_finishEdit();};
