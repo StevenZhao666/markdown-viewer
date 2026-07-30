@@ -78,6 +78,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .block-done:hover{background:#007acc}
 .block-tb-toggle{position:absolute;top:-28px;right:80px;padding:3px 8px;background:#3c3c3c;color:#ccc;border:1px solid #555;border-radius:3px;cursor:pointer;font-size:14px;z-index:10}
 .block-tb-toggle:hover{background:#505050}
+/* v4 分屏编辑 */
+.block-edit-split{display:flex;gap:12px;min-height:120px}
+.block-edit-split .block-editor{flex:1;min-width:0}
+.block-edit-preview{flex:1;min-width:0;overflow-y:auto;padding:8px 12px;background:#1e1e1e;border:1px solid #444;border-radius:4px;font-size:14px;line-height:1.6;color:#ddd}
+.block-edit-preview h1,.block-edit-preview h2,.block-edit-preview h3{color:#fff;margin:6px 0 3px;font-size:15px}
+.block-edit-preview p{margin:3px 0}
+.block-edit-preview code{background:#3a3a3a;padding:1px 4px;border-radius:2px;color:#f0a060;font-size:12px}
+.block-edit-preview table{border-collapse:collapse;margin:8px 0;width:100%;font-size:13px}
+.block-edit-preview th,.block-edit-preview td{border:1px solid #555;padding:4px 8px;text-align:left}
+.block-edit-preview th{background:#3c3c3c;color:#eee;font-weight:600}
 /* 符号工具栏 */
 #toolbar{width:320px;flex-shrink:0;background:#252526;border-left:1px solid #444;display:none;flex-direction:column;overflow-y:auto}
 #toolbar.show{display:flex}
@@ -164,7 +174,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v3.7.5</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v4.0.0</span></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
 </div>
@@ -510,8 +520,9 @@ function _editBlock(idx){
   const raw=div.dataset.raw;
   const st=preview.scrollTop; // 保存滚动位置
   div.className='block block-editing';
-  div.innerHTML='<button class="block-done" id="blockDone">✔ 完成</button><button class="block-tb-toggle" id="blockTbToggle" title="编辑工具">📐</button><textarea class="block-editor"></textarea>';
+  div.innerHTML='<button class="block-done" id="blockDone">✔ 完成</button><button class="block-tb-toggle" id="blockTbToggle" title="编辑工具">📐</button><div class="block-edit-split"><textarea class="block-editor"></textarea><div class="block-edit-preview"></div></div>';
   const ta=div.querySelector('.block-editor');
+  const pv=div.querySelector('.block-edit-preview');
   ta.value=raw;
   _editingIdx=idx;
   ta.focus();
@@ -542,6 +553,9 @@ function _editBlock(idx){
 function _autoSizeTA(ta){
   ta.style.height='auto';
   ta.style.height=Math.max(80,ta.scrollHeight)+'px';
+  // 同步分屏预览高度
+  const pv=document.querySelector('.block-edit-preview');
+  if(pv) pv.style.maxHeight=ta.style.height;
 }
 
 function _finishEdit(){
@@ -582,7 +596,9 @@ function _updateFullText(){
 // ── 实时预览 ──
 function _livePreview(){
   const ta=document.querySelector('.block-editor');
-  const pv=$('tbPreview');
+  // 优先渲染到分屏编辑的预览区，否则回退到tbPreview
+  let pv=document.querySelector('.block-edit-preview');
+  if(!pv) pv=$('tbPreview');
   if(!ta||!pv) return;
   pv.innerHTML='';
   // 合并编辑框文本 + canvas公式（插入到光标位置）
