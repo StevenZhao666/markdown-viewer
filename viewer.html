@@ -162,7 +162,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v3.6.8</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v3.6.9</span></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
 </div>
@@ -588,10 +588,7 @@ function _livePreview(){
   if(_canvasLatex){
     const s=ta.selectionStart||md.length;
     const wrapped='$'+_canvasLatex+'$';
-    // markdown表格前需空行
-    const after=md.substring(s);
-    const sep=(/^\s*\|/.test(after)&&!/\n\n$/.test(md.substring(0,s)))?'\n\n':'';
-    md=md.substring(0,s)+wrapped+sep+md.substring(s);
+    md=md.substring(0,s)+wrapped+md.substring(s);
   }
   const html=renderMD(md);
   pv.innerHTML=html;
@@ -1156,11 +1153,8 @@ function feInsert(){
   if(!l.startsWith('$')) l='$'+l+'$';
   const ta=document.querySelector('.block-editor'); if(!ta) return;
   const s=ta.selectionStart;
-  // markdown表格前需空行
-  const after=ta.value.substring(s);
-  const sep=(/^\s*\|/.test(after)&&!/\n\n$/.test(ta.value.substring(0,s)))?'\n\n':'';
-  ta.value=ta.value.substring(0,s)+l+sep+ta.value.substring(s);
-  ta.selectionStart=ta.selectionEnd=s+l.length+sep.length;
+  ta.value=ta.value.substring(0,s)+l+ta.value.substring(s);
+  ta.selectionStart=ta.selectionEnd=s+l.length;
   _canvasLatex=''; // 公式已进入编辑框，清理canvas状态
   ta.focus(); _autoSizeTA(ta); _livePreview();
 }
