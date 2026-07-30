@@ -162,7 +162,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v3.7.0</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v3.7.1</span></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
 </div>
@@ -240,13 +240,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <button class="fe-tpl-btn" onclick="_insertSymbol('e^{}')">e^□</button>
   </div>
   </div>
+    <div id="feEditor" style="display:none">
     <div id="feCanvas" class="fe-canvas"><span class="hint">👆 点模板添加，点槽位可嵌套</span></div>
     <div id="feLatex" class="fe-latex">LaTeX: <code id="feLatexCode"></code></div>
     <div class="fe-actions">
       <button class="fe-clear-btn" onclick="feClear()">清空</button>
       <button class="fe-insert-btn" id="feInsertBtn" onclick="feInsert()">插入文档</button>
     </div>
-  </div>
+    </div>
   <div class="tb-preview" id="tbPreview"></div>
 </div>
 <div class="resize-handle" id="handleToolbar" title="拖拽调整宽度"></div>
@@ -1138,6 +1139,7 @@ function feUpdate(){
     latex+=genBlockLatex(blk);
   });
   $('feLatexCode').textContent=latex||'(空)';
+  $('feEditor').style.display=latex?'':'none';
   _canvasLatex=latex;
   _livePreview(); // 让预览合并编辑框文本+canvas公式
 }
