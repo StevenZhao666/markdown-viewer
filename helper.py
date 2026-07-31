@@ -10,6 +10,7 @@ import socketserver
 
 PORT = 18520
 VIEWER_PATH = r'D:\MarkdownViewer\viewer.html'
+ROOT_DIR = r'D:\MarkdownViewer'
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
@@ -37,7 +38,23 @@ class Handler(http.server.BaseHTTPRequestHandler):
             import threading
             threading.Thread(target=self.server.shutdown).start()
         else:
-            self._json({'error': 'not found'}, 404)
+            # 尝试映射到 ROOT_DIR 下的静态文件（防路径逃逸）
+            local = os.path.normpath(os.path.join(ROOT_DIR, parsed.path.lstrip('/')))
+            real_local = os.path.realpath(local)
+            real_root = os.path.realpath(ROOT_DIR)
+            if os.path.commonpath([real_local, real_root]) == real_root:
+                try:
+                    with open(local, 'rb') as f:
+                        data = f.read()
+                    ext = os.path.splitext(local)[1].lower()
+                    ct = {'.js':'application/javascript','.css':'text/css',
+                          '.woff2':'font/woff2','.woff':'font/woff',
+                          '.html':'text/html','.json':'application/json'}.get(ext,'application/octet-stream')
+                    self._ok(ct, data)
+                except FileNotFoundError:
+                    self._json({'error': 'not found'}, 404)
+            else:
+                self._json({'error': 'forbidden'}, 403)
 
     def do_POST(self):
         if self.path == '/api/write':
