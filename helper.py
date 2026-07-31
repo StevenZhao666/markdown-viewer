@@ -6,6 +6,7 @@ import json
 import urllib.parse
 import sys
 import os
+import socketserver
 
 PORT = 18520
 VIEWER_PATH = r'D:\MarkdownViewer\viewer.html'
@@ -94,7 +95,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
 
 def main():
-    server = http.server.HTTPServer(('127.0.0.1', PORT), Handler)
+    server = socketserver.ThreadingTCPServer(('127.0.0.1', PORT), Handler)
     print(f'FILE_HELPER_READY port={PORT}', flush=True)
     server.serve_forever()
 
