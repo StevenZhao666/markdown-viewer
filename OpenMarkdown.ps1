@@ -1,5 +1,8 @@
 param([string]$FilePath)
 
+# 防止UNC路径导致工作目录异常
+Set-Location "D:\MarkdownViewer"
+
 $PORT = 18520
 $PYTHON = "C:\Users\风夜\AppData\Local\Programs\Python\Python311\python.exe"
 $HELPER = "D:\MarkdownViewer\helper.py"
