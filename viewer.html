@@ -374,7 +374,7 @@ function _setupTocHighlight(){
     if(!tocList.querySelector('.toc-item.active') && heads.length){
       heads[0].a.classList.add('active');
     }
-  },{rootMargin:'-56px 0px -50% 0px'});
+  },{rootMargin:'-56px 0px 0px 0px'}); // 顶部留56px工具栏,底部不留边距
   heads.forEach(h=>_tocObserver.observe(h.el));
 }
 
