@@ -1369,7 +1369,12 @@ function _renderSlotPreviews(){
     if(edit.matches(':focus')) return; // 编辑中不刷新预览
     const txt=(edit.textContent||'').trim();
     if(!txt){ prev.innerHTML=''; return; }
-    if(edit.querySelector('.fe-frac,.fe-sqrt,.fe-int,.fe-sup,.fe-sum,.fe-lim,.fe-mtx')){ prev.textContent=txt; return; }
+    // 有子公式块→递归_slotLatex生成完整LaTeX再KaTeX渲染
+    if(edit.querySelector('.fe-frac,.fe-sqrt,.fe-int,.fe-sup,.fe-sum,.fe-lim,.fe-mtx')){
+      const fullLatex=_slotLatex(edit);
+      if(fullLatex){try{if(typeof katex!=='undefined')katex.render(fullLatex,prev,{throwOnError:false});else prev.textContent=fullLatex;}catch(e){prev.textContent=fullLatex;}}
+      return;
+    }
     try{if(typeof katex!=='undefined')katex.render(txt,prev,{throwOnError:false});else prev.textContent=txt;}catch(e){prev.textContent=txt;}
   });
 }
