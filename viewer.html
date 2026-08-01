@@ -180,7 +180,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v4.1.12</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v4.1.13</span></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
 </div>
@@ -1252,6 +1252,9 @@ function _latexToHTML(latex){
   if(s.endsWith('$')) s=s.slice(0,-1);
   s=s.trim(); if(!s) return '';
   
+  // 辅助: 把公式块HTML包裹成fe-slw槽位(保持与手动嵌套结构一致)
+  const _wrap=(html,ph)=>html?(html.startsWith('<span class="fe-slw"')?html:'<span class="fe-slw"><span class="fe-slot">'+html+'</span><span class="fe-slr">'+html.replace(/<[^>]*>/g,'')+'</span></span>'):feSlot(ph);
+  
   // 尝试匹配各种模板 — 顺序重要（更长的模式优先）
   let m;
   
@@ -1259,9 +1262,11 @@ function _latexToHTML(latex){
   if(s.startsWith('\\frac')){
     const num=_parseBraces(s,5);
     const den=_parseBraces(s,num.pos);
-    const numHtml=_latexToHTML(num.content)||feSlot(num.content||'a');
-    const denHtml=_latexToHTML(den.content)||feSlot(den.content||'b');
-    return '<span class="fe-frac"><span class="fe-frac-num">'+numHtml+'</span><div class="fe-frac-line"></div><span class="fe-frac-den">'+denHtml+'</span></span>';
+    const numHtml=_latexToHTML(num.content);
+    const denHtml=_latexToHTML(den.content);
+    return '<span class="fe-frac"><span class="fe-frac-num">'+
+      _wrap(numHtml,num.content||'a')+'</span><div class="fe-frac-line"></div><span class="fe-frac-den">'+
+      _wrap(denHtml,den.content||'b')+'</span></span>';
   }
   
   // \sqrt{arg}
