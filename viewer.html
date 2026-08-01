@@ -180,7 +180,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v4.1.10</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v4.1.11</span></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
 </div>
@@ -1328,8 +1328,9 @@ function _latexToHTML(latex){
   }
   
 
-  // 无法识别 — 返回null让调用方显示提示
-  return null;
+  // 普通表达式/无法结构化（如 e^{iπ}+1=0）— 生成单个可编辑槽位
+  // 预览层KaTeX渲染+点击进入编辑，与手动添加的槽位行为一致
+  return feSlot(s);
 }
 
 function _getFormulaLatex(el){
@@ -1363,7 +1364,9 @@ function genBlockLatex(blk){
 }
 // v4.1.10: 渲染所有槽位预览(从编辑层→其后.pre-slr)
 function _renderSlotPreviews(){
-  document.querySelectorAll('#feCanvas .fe-slot').forEach(edit=>{
+  const slots=[...document.querySelectorAll('#feCanvas .fe-slot')];
+  let ok=0;
+  slots.forEach(edit=>{
     const prev=edit.nextElementSibling;
     if(!prev||!prev.classList.contains('fe-slr')) return;
     if(edit.matches(':focus')) return; // 编辑中不刷新预览
@@ -1375,8 +1378,9 @@ function _renderSlotPreviews(){
       if(fullLatex){try{if(typeof katex!=='undefined')katex.render(fullLatex,prev,{throwOnError:false});else prev.textContent=fullLatex;}catch(e){prev.textContent=fullLatex;}}
       return;
     }
-    try{if(typeof katex!=='undefined')katex.render(txt,prev,{throwOnError:false});else prev.textContent=txt;}catch(e){prev.textContent=txt;}
+    try{if(typeof katex!=='undefined'){katex.render(txt,prev,{throwOnError:false});ok++;}else prev.textContent=txt;}catch(e){prev.textContent=txt;}
   });
+  console.log('🔍 slot预览:',slots.length+'个槽位, '+ok+'个KaTeX✅');
 }
 
 function feUpdate(){
@@ -1386,8 +1390,10 @@ function feUpdate(){
   // 槽位需要toolbar可见才能聚焦，自动打开
   if(!$('toolbar').classList.contains('show')) $('toolbar').classList.add('show');
   let latex='';
-  c.querySelectorAll(':scope>.fe-frac,:scope>.fe-sqrt,:scope>.fe-int,:scope>.fe-sup,:scope>.fe-sum,:scope>.fe-lim,:scope>.fe-mtx').forEach(blk=>{
-    latex+=genBlockLatex(blk);
+  [...c.children].forEach(blk=>{
+    const cls=blk.className||'';
+    if(/fe-(frac|sqrt|int|sup|sum|lim|mtx)/.test(cls)) latex+=genBlockLatex(blk);
+    else if(cls.includes('fe-slw')) latex+=_slotLatex(blk.querySelector('.fe-slot'));
   });
   $('feLatexCode').textContent=latex||'(空)';
   $('feEditor').style.display=latex?'':'none';
