@@ -131,6 +131,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .fe-slot{display:inline-block;min-width:32px;padding:4px 8px;border:2px dashed #888;border-radius:4px;background:#2a2a2a;color:#e0e0e0;text-align:center;font-size:16px;font-family:'Times New Roman',serif;cursor:text;vertical-align:middle;outline:none}
 .fe-slot:focus{border-color:#5aafff;background:#1a3a4a;border-style:solid}
 .fe-slot:empty::before{content:attr(data-ph);color:#ccc}
+/* v4.1.9: 槽位双面——预览层(渲染) + 编辑层(contenteditable) */
+.fe-slw{display:inline-block;vertical-align:middle;cursor:pointer}
+.fe-slr{display:inline-block;min-width:32px;padding:4px 8px;border:2px dashed transparent;border-radius:4px;color:#e0e0e0;text-align:center;font-size:16px;vertical-align:middle}
+.fe-slr .katex{font-size:15px}
+.fe-slr:empty::before{content:attr(data-ph);color:#888}
+.fe-slw:hover>.fe-slr:not(.fe-slr-nope){border-color:#5aafff}
+.fe-slw .fe-slot{display:none}
+.fe-slw.editing>.fe-slr{display:none}
+.fe-slw.editing>.fe-slot{display:inline-block}
 .fe-frac{display:inline-grid;grid-template-areas:'num''line''den';grid-template-columns:1fr;justify-items:center;vertical-align:middle;margin:0 4px;row-gap:2px}
 .fe-frac-num{grid-area:num}.fe-frac-den{grid-area:den}
 .fe-frac-line{grid-area:line;width:100%;min-width:40px;height:2px;background:#aaa}
@@ -174,7 +183,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v4.1.8</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v4.1.9</span></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
 </div>
@@ -1084,11 +1093,27 @@ $('tbClose').onclick=_hideTb;
 let _focusedSlot=null;
 let _canvasLatex='';
 let _replaceRange=null; // v4.1: 预览加载公式的原文位置 {s,e}
-function feSlot(ph){return '<div class="fe-slot" contenteditable="true" data-ph="'+ph+'" oninput="feUpdate()" onblur="feOnBlur(this)"></div>';}
+// v4.1.9: 槽位双面——.fe-slr(渲染预览)+.fe-slot(contenteditable编辑层)
+function feSlot(ph){return '<span class="fe-slw"><span class="fe-slr" data-ph="'+ph+'">'+ph+'</span><span class="fe-slot" contenteditable="true" data-ph="'+ph+'" oninput="feUpdate()" onblur="feOnBlur(this)">'+ph+'</span></span>';}
 function feOnFocus(el){_focusedSlot=el;}
-// v4.1.8: 点击事件捕获目标槽位（支持嵌套深层slot）
-document.addEventListener('click',function(e){var s=e.target.closest('.fe-slot');if(s)_focusedSlot=s;});
-function feOnBlur(el){if(!el.textContent.trim()) el.textContent=''; feUpdate();}
+// 点击.fe-slw→进入编辑模式，blur回预览+KaTeX渲染
+document.addEventListener('mousedown',function(e){
+  var s=e.target.closest('.fe-slot'); if(s){ _focusedSlot=s; return; }
+  var w=e.target.closest('.fe-slw'); if(!w) return;
+  var prev=w.querySelector('.fe-slr'), edit=w.querySelector('.fe-slot');
+  if(!prev||!edit) return;
+  w.classList.add('editing'); edit.focus(); _focusedSlot=edit;
+});
+function feOnBlur(el){
+  if(!el.textContent.trim()) el.textContent='';
+  var w=el.closest('.fe-slw'); if(!w){ feUpdate(); return; }
+  w.classList.remove('editing');
+  var prev=w.querySelector('.fe-slr');
+  if(!el.querySelector('.fe-frac,.fe-sqrt,.fe-int,.fe-sup,.fe-sum,.fe-lim,.fe-mtx')){
+    var txt=el.textContent.trim(); if(txt){try{if(typeof katex!=='undefined')katex.render(txt,prev,{throwOnError:false});else prev.textContent=txt;}catch(e){prev.textContent=txt;}}
+  }else{prev.textContent=el.textContent;}
+  feUpdate();
+}
 function _slotLatex(slot){
   try{
     const frac=slot.querySelector('.fe-frac'); if(frac) return genBlockLatex(frac);
@@ -1342,6 +1367,18 @@ function genBlockLatex(blk){
   }
   return '';
 }
+// v4.1.9: 渲染所有槽位预览(K
+function _renderSlotPreviews(){
+  document.querySelectorAll('#feCanvas .fe-slr').forEach(prev=>{
+    const edit=prev.nextElementSibling;
+    if(!edit||edit.closest('.fe-slw.editing')) return; // 编辑中不刷新预览
+    const txt=(edit.textContent||'').trim();
+    if(!txt){ prev.innerHTML=''; return; }
+    if(edit.querySelector('.fe-frac,.fe-sqrt,.fe-int,.fe-sup,.fe-sum,.fe-lim,.fe-mtx')){ prev.textContent=txt; return; }
+    try{if(typeof katex!=='undefined')katex.render(txt,prev,{throwOnError:false});else prev.textContent=txt;}catch(e){prev.textContent=txt;}
+  });
+}
+
 function feUpdate(){
   const c=$('feCanvas');
   const hint=c.querySelector('.hint');
@@ -1353,6 +1390,7 @@ function feUpdate(){
   $('feLatexCode').textContent=latex||'(空)';
   $('feEditor').style.display=latex?'':'none';
   _canvasLatex=latex;
+  _renderSlotPreviews(); // v4.1.9: 刷新槽位KaTeX预览
   _livePreview(); // 让预览合并编辑框文本+canvas公式
 }
 function feInsert(){
