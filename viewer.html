@@ -337,49 +337,47 @@ function buildTOC(html){
     tocList.appendChild(a);
   });
   _setupTocHighlight();
+  _updateToc();
 }
 
-// ── IntersectionObserver 目录高亮: 跟随视口顶部标题 ──
-let _tocObserver=null;
+// ── 目录高亮: scroll触发,三层简单逻辑 ──
+let _tocHeads=[], _tocRAF=null;
 function _setupTocHighlight(){
-  if(_tocObserver){ _tocObserver.disconnect(); _tocObserver=null; }
+  _tocHeads=[];
   const links=tocList.querySelectorAll('.toc-item');
-  if(!links.length) return;
-  const heads=[];
   links.forEach(a=>{
     const h=document.getElementById(a.getAttribute('href').slice(1));
-    if(h) heads.push({el:h, a});
+    if(h) _tocHeads.push({el:h, a});
   });
-  if(!heads.length) return;
-  _tocObserver=new IntersectionObserver(entries=>{
-    // 手动扫所有标题的可见性(不能只靠entries——entries只有状态变化的标题)
-    const visible=new Set();
-    heads.forEach(({el,a})=>{
-      const r=el.getBoundingClientRect();
-      if(r.top<window.innerHeight&&r.bottom>56) visible.add(el);
-    });
-    // 上溯: 子标题可见→上层标题也亮
-    const parents=new Set();
-    for(let i=0;i<headingIds.length;i++){
-      const el=document.getElementById(headingIds[i]);
-      if(!el||visible.has(el)) continue;
-      const lvl=parseInt(el.tagName[1]);
-      for(let j=i+1;j<headingIds.length;j++){
-        const child=document.getElementById(headingIds[j]);
-        const cLvl=parseInt(child.tagName[1]);
-        if(cLvl<=lvl) break; // 遇到同级或更高级,停止
-        if(visible.has(child)){ parents.add(el); break; }
-      }
-    }
-    const all=new Set([...visible,...parents]);
-    heads.forEach(({el,a})=>{ a.classList.toggle('active',all.has(el)); });
-    // 顶部回退: 无任何active时高亮第一个
-    if(!tocList.querySelector('.toc-item.active') && heads.length){
-      heads[0].a.classList.add('active');
-    }
-  },{rootMargin:'-56px 0px 0px 0px'});
-  heads.forEach(h=>_tocObserver.observe(h.el));
 }
+// 每次renderMD后调用:_setupTocHighlight+_updateToc
+function _updateToc(){
+  // ① 扫所有标题: 在视口内的标记
+  const inView=new Set();
+  _tocHeads.forEach(({el})=>{
+    const r=el.getBoundingClientRect();
+    if(r.top<window.innerHeight&&r.bottom>56) inView.add(el);
+  });
+  // ② 上溯: 在视口内的标题→往前找层级更小的父标题,也标记
+  const act=new Set(inView);
+  for(let i=0;i<headingIds.length;i++){
+    const el=document.getElementById(headingIds[i]);
+    if(!el||!inView.has(el)) continue;
+    let ci=i, cl=parseInt(el.tagName[1]);
+    while(ci>0){
+      ci--;
+      const prev=document.getElementById(headingIds[ci]);
+      const pl=parseInt(prev.tagName[1]);
+      if(pl<cl){ act.add(prev); cl=pl; } // 找到父级,继续往上
+    }
+  }
+  // ③ 应用到DOM
+  _tocHeads.forEach(({el,a})=>{ a.classList.toggle('active',act.has(el)); });
+}
+preview.addEventListener('scroll',()=>{
+  if(_tocRAF) return;
+  _tocRAF=requestAnimationFrame(()=>{ _tocRAF=null; _updateToc(); });
+},{passive:true});
 
 // ── Markdown 渲染 ──
 function renderMD(text){
