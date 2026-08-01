@@ -54,10 +54,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 #tocList{flex:1;overflow-y:auto;padding:6px 0}
 #tocList .toc-item{display:block;padding:5px 12px 5px 16px;cursor:pointer;color:#bbb;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:2px solid transparent;transition:all .1s;font-size:13px}
 #tocList .toc-item:hover{color:#fff;background:#333}
-/* 各级别高亮渐淡: h1最深→h2中等→h3最淡 */
+/* 各级别同时高亮,互不干扰——h1最深→h3最淡 */
 #tocList .toc-item.lvl1.active{color:#fff;background:var(--color-accent-pale);border-left-color:var(--color-accent)}
-#tocList .toc-item.lvl2.active{color:#fff;background:transparent;border-left-color:var(--color-accent-dim);opacity:0.9}
-#tocList .toc-item.lvl3.active{color:var(--color-text-dim);background:transparent;border-left-color:var(--color-accent-dim);opacity:0.7}
+#tocList .toc-item.lvl2.active{color:#fff;background:var(--color-accent-pale);border-left-color:var(--color-accent-dim);opacity:0.85}
+#tocList .toc-item.lvl3.active{color:#fff;background:var(--color-accent-pale);border-left-color:var(--color-accent-dim);opacity:0.7}
 #tocList .toc-item.lvl1{padding-left:16px;font-weight:500}
 #tocList .toc-item.lvl2{padding-left:28px;font-size:12px}
 #tocList .toc-item.lvl3{padding-left:40px;font-size:12px;color:#999}
@@ -348,28 +348,17 @@ function _setupTocHighlight(){
   });
   if(!heads.length) return;
   _tocObserver=new IntersectionObserver(entries=>{
-    // 找所有交叉的标题中最接近视口顶部的
-    let best=null, bestTop=Infinity;
+    // 遍历所有交叉的标题:在视口内的全部高亮,互不干扰
     entries.forEach(e=>{
-      if(e.isIntersecting && e.boundingClientRect.top>=0 && e.boundingClientRect.top<bestTop){
-        bestTop=e.boundingClientRect.top;
-        best=e.target;
-      }
+      const h=heads.find(x=>x.el===e.target);
+      if(!h) return;
+      h.a.classList.toggle('active',e.isIntersecting);
     });
-    // 没找到就取最后一个在视口上方的标题
-    if(!best){
-      for(let i=heads.length-1;i>=0;i--){
-        if(heads[i].el.getBoundingClientRect().top<=80){
-          best=heads[i].el; break;
-        }
-      }
+    // 如果视口在顶部(无任何标题交叉),高亮第一个
+    if(!tocList.querySelector('.toc-item.active') && heads.length){
+      heads[0].a.classList.add('active');
     }
-    if(best){
-      links.forEach(a=>a.classList.remove('active'));
-      const h=heads.find(x=>x.el===best);
-      if(h) h.a.classList.add('active');
-    }
-  },{rootMargin:'-56px 0px -50% 0px'}); // 顶部留56px(工具栏)
+  },{rootMargin:'-56px 0px -50% 0px'});
   heads.forEach(h=>_tocObserver.observe(h.el));
 }
 
