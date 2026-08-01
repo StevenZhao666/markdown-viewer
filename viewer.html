@@ -1191,7 +1191,7 @@ function feInsertMtx(cols,rows){
     '<span class="fe-mtx" data-cols="'+cols+'" data-rows="'+rows+'">[ '+inner+' ]</span>');
 }
 function feClear(){
-  _focusedSlot=null; _canvasLatex='';
+  _focusedSlot=null; _canvasLatex=''; _replaceRange=null;
   $('feCanvas').innerHTML='<span class="hint">👆 点模板添加，点槽位可嵌套</span>';
   feUpdate();
 }
