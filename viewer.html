@@ -1102,10 +1102,17 @@ function feOnBlur(el){
   if(!el.textContent.trim()) el.textContent='';
   var w=el.closest('.fe-slw'); if(!w){ feUpdate(); return; }
   w.classList.remove('editing');
-  var prev=w.querySelector('.fe-slr');
-  if(!el.querySelector('.fe-frac,.fe-sqrt,.fe-int,.fe-sup,.fe-sum,.fe-lim,.fe-mtx')){
-    var txt=el.textContent.trim(); if(txt){try{if(typeof katex!=='undefined')katex.render(txt,prev,{throwOnError:false});else prev.textContent=txt;}catch(e){prev.textContent=txt;}}
-  }else{prev.textContent=el.textContent;}
+  var prev=w.querySelector(':scope>.fe-slr'); // 只取本槽位直接子预览层
+  if(prev){
+    if(el.querySelector('.fe-frac,.fe-sqrt,.fe-int,.fe-sup,.fe-sum,.fe-lim,.fe-mtx')){
+      // 有子公式块→递归_slotLatex生成完整LaTeX再KaTeX渲染
+      const fullLatex=_slotLatex(el);
+      if(fullLatex){try{if(typeof katex!=='undefined')katex.render(fullLatex,prev,{throwOnError:false});else prev.textContent=fullLatex;}catch(e){prev.textContent=fullLatex;}}
+    }else{
+      var txt=el.textContent.trim();
+      if(txt){try{if(typeof katex!=='undefined')katex.render(txt,prev,{throwOnError:false});else prev.textContent=txt;}catch(e){prev.textContent=txt;}}
+    }
+  }
   feUpdate();
 }
 function _slotLatex(slot){
