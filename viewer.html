@@ -352,27 +352,28 @@ function _setupTocHighlight(){
 }
 // 每次renderMD后调用:_setupTocHighlight+_updateToc
 function _updateToc(){
-  // ① 扫所有标题: 在视口内的标记
-  const inView=new Set();
+  // ① 找视口顶部最近的标题
+  let topEl=null, minTop=Infinity;
   _tocHeads.forEach(({el})=>{
     const r=el.getBoundingClientRect();
-    if(r.top<window.innerHeight&&r.bottom>56) inView.add(el);
+    if(r.top>=56&&r.top<window.innerHeight&&r.top<minTop){ minTop=r.top; topEl=el; }
   });
-  // ② 上溯: 在视口内的标题→往前找层级更小的父标题,也标记
-  const act=new Set(inView);
-  for(let i=0;i<headingIds.length;i++){
-    const el=document.getElementById(headingIds[i]);
-    if(!el||!inView.has(el)) continue;
-    let ci=i, cl=parseInt(el.tagName[1]);
-    while(ci>0){
-      ci--;
-      const prev=document.getElementById(headingIds[ci]);
+  // 全在工具栏上方→取最后一个
+  if(!topEl){ for(let i=_tocHeads.length-1;i>=0;i--){ if(_tocHeads[i].el.getBoundingClientRect().bottom<=56){ topEl=_tocHeads[i].el; break; } } }
+  if(!topEl&&_tocHeads.length) topEl=_tocHeads[0].el;
+  // ② 构建祖先链(当前标题+往前逐级父标题)
+  const chain=new Set([topEl]);
+  const idx=headingIds.indexOf(topEl.id);
+  if(idx>=0){
+    let cl=parseInt(topEl.tagName[1]);
+    for(let j=idx-1;j>=0;j--){
+      const prev=document.getElementById(headingIds[j]);
       const pl=parseInt(prev.tagName[1]);
-      if(pl<cl){ act.add(prev); cl=pl; } // 找到父级,继续往上
+      if(pl<cl){ chain.add(prev); cl=pl; }
     }
   }
-  // ③ 应用到DOM
-  _tocHeads.forEach(({el,a})=>{ a.classList.toggle('active',act.has(el)); });
+  // ③ 只高亮链上标题
+  _tocHeads.forEach(({el,a})=>{ a.classList.toggle('active',chain.has(el)); });
 }
 preview.addEventListener('scroll',()=>{
   if(_tocRAF) return;
