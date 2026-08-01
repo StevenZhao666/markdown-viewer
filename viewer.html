@@ -9,7 +9,7 @@
 *{margin:0;padding:0;box-sizing:border-box}
 /* ══════ 颜色系统: 改--color-accent一个变量全局生效 ══════ */
 :root{
-  --color-accent:#007acc;--color-accent-hover:#0098ff;--color-accent-dim:#005a8c;--color-accent-pale:#00324d;
+  --color-accent:#007acc;--color-accent-hover:#0098ff;--color-accent-dim:#005a8c;--color-accent-pale:#005577;
   --color-bg:#1e1e1e;--color-bg-secondary:#252526;--color-bg-tertiary:#333;
   --color-text:#e0e0e0;--color-text-dim:#aaa;
   --font-ui:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
@@ -54,13 +54,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 #tocList{flex:1;overflow-y:auto;padding:6px 0}
 #tocList .toc-item{display:block;padding:5px 12px 5px 16px;cursor:pointer;color:#bbb;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:2px solid transparent;transition:all .1s;font-size:13px}
 #tocList .toc-item:hover{color:#fff;background:#333}
-/* 各级别同时高亮,互不干扰——h1最深→h3最淡 */
-#tocList .toc-item.lvl1.active{color:#fff;background:var(--color-accent-pale);border-left-color:var(--color-accent)}
-#tocList .toc-item.lvl2.active{color:#fff;background:var(--color-accent-pale);border-left-color:var(--color-accent-dim);opacity:0.85}
-#tocList .toc-item.lvl3.active{color:#fff;background:var(--color-accent-pale);border-left-color:var(--color-accent-dim);opacity:0.7}
+/* 各级别同时高亮,互不干扰——h1最亮→h6最淡(opacity递减) */
+#tocList .toc-item.lvl1.active{color:#fff;background:var(--color-accent-pale);border-left-color:var(--color-accent);opacity:1}
+#tocList .toc-item.lvl2.active{color:#fff;background:var(--color-accent-pale);border-left-color:var(--color-accent-dim);opacity:0.82}
+#tocList .toc-item.lvl3.active{color:#fff;background:var(--color-accent-pale);border-left-color:var(--color-accent-dim);opacity:0.65}
+#tocList .toc-item.lvl4.active{color:#fff;background:var(--color-accent-pale);border-left-color:var(--color-accent-dim);opacity:0.5}
+#tocList .toc-item.lvl5.active{color:var(--color-text-dim);background:var(--color-accent-pale);border-left-color:var(--color-accent-dim);opacity:0.38}
+#tocList .toc-item.lvl6.active{color:var(--color-text-dim);background:var(--color-accent-pale);border-left-color:var(--color-accent-dim);opacity:0.28}
 #tocList .toc-item.lvl1{padding-left:16px;font-weight:500}
 #tocList .toc-item.lvl2{padding-left:28px;font-size:12px}
 #tocList .toc-item.lvl3{padding-left:40px;font-size:12px;color:#999}
+#tocList .toc-item.lvl4{padding-left:52px;font-size:11px;color:#888}
+#tocList .toc-item.lvl5{padding-left:62px;font-size:11px;color:#777}
+#tocList .toc-item.lvl6{padding-left:72px;font-size:11px;color:#666}
 .toc-empty{padding:20px;text-align:center;color:#999;font-size:13px}
 #preview h1,#preview h2,#preview h3{scroll-margin-top:10px}
 #preview h1,#preview h2,#preview h3{color:#fff;margin:24px 0 12px}
@@ -300,7 +306,7 @@ function slug(text){return 'h-'+text.toLowerCase().replace(/[^\w\u4e00-\u9fff]+/
 
 // ── 生成目录 HTML ──
 function buildTOC(html){
-  const rx=/<(h[123])[^>]*id="([^"]*)"[^>]*>(.+?)<\/h[123]>/gi;
+  const rx=/<(h[1-6])[^>]*id="([^"]*)"[^>]*>(.+?)<\/h[1-6]>/gi;
   const items=[];
   let m;
   while((m=rx.exec(html))!==null){
@@ -320,9 +326,7 @@ function buildTOC(html){
   items.forEach(item=>{
     const a=document.createElement('a');
     a.className='toc-item';
-    if(item.tag==='h1') a.classList.add('lvl1');
-    if(item.tag==='h2') a.classList.add('lvl2');
-    if(item.tag==='h3') a.classList.add('lvl3');
+    a.classList.add('lvl'+item.tag[1]);
     a.textContent=item.text;
     a.title=item.text;
     a.href='#'+item.id;
@@ -348,13 +352,25 @@ function _setupTocHighlight(){
   });
   if(!heads.length) return;
   _tocObserver=new IntersectionObserver(entries=>{
-    // 遍历所有交叉的标题:在视口内的全部高亮,互不干扰
-    entries.forEach(e=>{
-      const h=heads.find(x=>x.el===e.target);
-      if(!h) return;
-      h.a.classList.toggle('active',e.isIntersecting);
-    });
-    // 如果视口在顶部(无任何标题交叉),高亮第一个
+    // 收集所有在视口内的标题
+    const visible=new Set();
+    entries.forEach(e=>{ if(e.isIntersecting) visible.add(e.target); });
+    // 上溯: 子标题可见→上层标题(父级)也亮
+    const parents=new Set();
+    for(let i=0;i<headingIds.length;i++){
+      const el=document.getElementById(headingIds[i]);
+      if(!el) continue;
+      const lvl=parseInt(el.tagName[1]);
+      for(let j=i+1;j<headingIds.length;j++){
+        const child=document.getElementById(headingIds[j]);
+        const cLvl=parseInt(child.tagName[1]);
+        if(cLvl<=lvl) break; // 遇到同级或更高级,停止(离开我的作用域)
+        if(visible.has(child)){ parents.add(el); break; }
+      }
+    }
+    const all=new Set([...visible,...parents]);
+    heads.forEach(({el,a})=>{ a.classList.toggle('active',all.has(el)); });
+    // 顶部回退: 无任何active时高亮第一个
     if(!tocList.querySelector('.toc-item.active') && heads.length){
       heads[0].a.classList.add('active');
     }
