@@ -1127,34 +1127,34 @@ function _slotLatex(slot){
   return slot.textContent.trim()||slot.dataset.ph||'';
 }
 function _feTarget(){return document.activeElement?.closest('.fe-slot')||_focusedSlot||$('feCanvas');}
+// v4.1.12: 往目标添加块——若目标是槽位则先清除残留文本,再插入
+function _feAppend(html){
+  var t=_feTarget();
+  if(t.classList&&t.classList.contains('fe-slot')) t.textContent='';
+  t.insertAdjacentHTML('beforeend',html);
+  feUpdate();
+}
 
 function feAddFrac(){
-  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-frac"><span class="fe-frac-num">'+feSlot('a')+'</span><div class="fe-frac-line"></div><span class="fe-frac-den">'+feSlot('b')+'</span></span>');
-  feUpdate();
+  _feAppend('<span class="fe-frac"><span class="fe-frac-num">'+feSlot('a')+'</span><div class="fe-frac-line"></div><span class="fe-frac-den">'+feSlot('b')+'</span></span>');
 }
 function feAddSqrt(){
-  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-sqrt"><span class="fe-sqrt-sign">√</span><span class="fe-sqrt-overline">'+feSlot('x')+'</span></span>');
-  feUpdate();
+  _feAppend('<span class="fe-sqrt"><span class="fe-sqrt-sign">√</span><span class="fe-sqrt-overline">'+feSlot('x')+'</span></span>');
 }
 function feAddInt(){
-  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-int"><span class="fe-int-sym">∫</span><span class="fe-int-sub">'+feSlot('a')+'</span><span class="fe-int-sup"><sup>'+feSlot('b')+'</sup></span><span class="fe-int-expr">'+feSlot('f(x)')+'<span>d</span>'+feSlot('x')+'</span></span>');
-  feUpdate();
+  _feAppend('<span class="fe-int"><span class="fe-int-sym">∫</span><span class="fe-int-sub">'+feSlot('a')+'</span><span class="fe-int-sup"><sup>'+feSlot('b')+'</sup></span><span class="fe-int-expr">'+feSlot('f(x)')+'<span>d</span>'+feSlot('x')+'</span></span>');
 }
 function feAddSup(){
-  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-sup"><span class="fe-sup-dot">·</span><sup>'+feSlot('n')+'</sup></span>');
-  feUpdate();
+  _feAppend('<span class="fe-sup"><span class="fe-sup-dot">·</span><sup>'+feSlot('n')+'</sup></span>');
 }
 function feAddSum(){
-  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-sum"><span class="fe-sum-sup">'+feSlot('n')+'</span><span class="fe-sum-sym">Σ</span><span class="fe-sum-sub">'+feSlot('i=1')+'</span><span class="fe-sum-expr">'+feSlot('x()')+'</span></span>');
-  feUpdate();
+  _feAppend('<span class="fe-sum"><span class="fe-sum-sup">'+feSlot('n')+'</span><span class="fe-sum-sym">Σ</span><span class="fe-sum-sub">'+feSlot('i=1')+'</span><span class="fe-sum-expr">'+feSlot('x()')+'</span></span>');
 }
 function feAddLim(){
-  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-lim"><span class="fe-lim-text">lim</span><span class="fe-lim-sub">'+feSlot('x→0')+'</span><span class="fe-lim-expr">'+feSlot('f')+'</span></span>');
-  feUpdate();
+  _feAppend('<span class="fe-lim"><span class="fe-lim-text">lim</span><span class="fe-lim-sub">'+feSlot('x→0')+'</span><span class="fe-lim-expr">'+feSlot('f')+'</span></span>');
 }
 function feAddProd(){
-  _feTarget().insertAdjacentHTML('beforeend','<span class="fe-sum"><span class="fe-sum-sup">'+feSlot('n')+'</span><span class="fe-sum-sym">Π</span><span class="fe-sum-sub">'+feSlot('i=1')+'</span><span class="fe-sum-expr">'+feSlot('x()')+'</span></span>');
-  feUpdate();
+  _feAppend('<span class="fe-sum"><span class="fe-sum-sup">'+feSlot('n')+'</span><span class="fe-sum-sym">Π</span><span class="fe-sum-sub">'+feSlot('i=1')+'</span><span class="fe-sum-expr">'+feSlot('x()')+'</span></span>');
 }
 function feAddMtx(){
   const pk=$('tbGridPicker'); const cells=$('tbGridCells'); const label=$('tbGridLabel');
