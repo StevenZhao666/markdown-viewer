@@ -352,19 +352,22 @@ function _setupTocHighlight(){
   });
   if(!heads.length) return;
   _tocObserver=new IntersectionObserver(entries=>{
-    // 收集所有在视口内的标题
+    // 手动扫所有标题的可见性(不能只靠entries——entries只有状态变化的标题)
     const visible=new Set();
-    entries.forEach(e=>{ if(e.isIntersecting) visible.add(e.target); });
-    // 上溯: 子标题可见→上层标题(父级)也亮
+    heads.forEach(({el,a})=>{
+      const r=el.getBoundingClientRect();
+      if(r.top<window.innerHeight&&r.bottom>56) visible.add(el);
+    });
+    // 上溯: 子标题可见→上层标题也亮
     const parents=new Set();
     for(let i=0;i<headingIds.length;i++){
       const el=document.getElementById(headingIds[i]);
-      if(!el) continue;
+      if(!el||visible.has(el)) continue;
       const lvl=parseInt(el.tagName[1]);
       for(let j=i+1;j<headingIds.length;j++){
         const child=document.getElementById(headingIds[j]);
         const cLvl=parseInt(child.tagName[1]);
-        if(cLvl<=lvl) break; // 遇到同级或更高级,停止(离开我的作用域)
+        if(cLvl<=lvl) break; // 遇到同级或更高级,停止
         if(visible.has(child)){ parents.add(el); break; }
       }
     }
@@ -374,7 +377,7 @@ function _setupTocHighlight(){
     if(!tocList.querySelector('.toc-item.active') && heads.length){
       heads[0].a.classList.add('active');
     }
-  },{rootMargin:'-56px 0px 0px 0px'}); // 顶部留56px工具栏,底部不留边距
+  },{rootMargin:'-56px 0px 0px 0px'});
   heads.forEach(h=>_tocObserver.observe(h.el));
 }
 
