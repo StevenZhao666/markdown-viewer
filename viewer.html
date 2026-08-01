@@ -180,7 +180,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v4.1.11</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><span style="color:#0e639c;font-size:11px;padding:2px 8px;border:1px solid #007acc;border-radius:3px;margin-left:4px">v4.1.12</span></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
 </div>
@@ -1105,9 +1105,8 @@ function feOnBlur(el){
   var prev=w.querySelector(':scope>.fe-slr'); // 只取本槽位直接子预览层
   if(prev){
     if(el.querySelector('.fe-frac,.fe-sqrt,.fe-int,.fe-sup,.fe-sum,.fe-lim,.fe-mtx')){
-      // 有子公式块→递归_slotLatex生成完整LaTeX再KaTeX渲染
-      const fullLatex=_slotLatex(el);
-      if(fullLatex){try{if(typeof katex!=='undefined')katex.render(fullLatex,prev,{throwOnError:false});else prev.textContent=fullLatex;}catch(e){prev.textContent=fullLatex;}}
+      // 有子公式块→隐藏本层预览,子公式块结构可见
+      prev.style.visibility='hidden';
     }else{
       var txt=el.textContent.trim();
       if(txt){try{if(typeof katex!=='undefined')katex.render(txt,prev,{throwOnError:false});else prev.textContent=txt;}catch(e){prev.textContent=txt;}}
@@ -1349,7 +1348,15 @@ function _getFormulaLatex(el){
   return null;
 }
 function genBlockLatex(blk){
-  const slots=[...blk.querySelectorAll('.fe-slot')];
+  // 只取直接属于本块的槽位(排除嵌套子公式内部的槽位,否则顺序错乱)
+  const slots=[...blk.querySelectorAll('.fe-slot')].filter(s=>{
+    let p=s.parentElement;
+    while(p&&p!==blk){
+      if(p.matches&&p.matches('.fe-frac,.fe-sqrt,.fe-int,.fe-sup,.fe-sum,.fe-lim,.fe-mtx')) return false;
+      p=p.parentElement;
+    }
+    return true;
+  });
   const v=slots.map(s=>_slotLatex(s));
   if(blk.classList.contains('fe-frac')) return '\\frac{'+v[0]+'}{'+v[1]+'}';
   if(blk.classList.contains('fe-sqrt')) return '\\sqrt{'+v[0]+'}';
@@ -1379,10 +1386,9 @@ function _renderSlotPreviews(){
     if(edit.matches(':focus')) return; // 编辑中不刷新预览
     const txt=(edit.textContent||'').trim();
     if(!txt){ prev.innerHTML=''; return; }
-    // 有子公式块→递归_slotLatex生成完整LaTeX再KaTeX渲染
+    // 有子公式块→隐藏本层预览(子公式块自身结构可见),避免双渲染
     if(edit.querySelector('.fe-frac,.fe-sqrt,.fe-int,.fe-sup,.fe-sum,.fe-lim,.fe-mtx')){
-      const fullLatex=_slotLatex(edit);
-      if(fullLatex){try{if(typeof katex!=='undefined')katex.render(fullLatex,prev,{throwOnError:false});else prev.textContent=fullLatex;}catch(e){prev.textContent=fullLatex;}}
+      prev.style.visibility='hidden';
       return;
     }
     try{if(typeof katex!=='undefined'){katex.render(txt,prev,{throwOnError:false});ok++;}else prev.textContent=txt;}catch(e){prev.textContent=txt;}
