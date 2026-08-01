@@ -1187,9 +1187,8 @@ function feInsertMtx(cols,rows){
     }
     if(r<rows-1) inner+=' ; ';
   }
-  _feTarget().insertAdjacentHTML('beforeend',
+  _feAppend(
     '<span class="fe-mtx" data-cols="'+cols+'" data-rows="'+rows+'">[ '+inner+' ]</span>');
-  feUpdate();
 }
 function feClear(){
   _focusedSlot=null; _canvasLatex='';
