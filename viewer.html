@@ -302,6 +302,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
     <div class="toc-color-row"><label>主题</label><input type="color" id="tcAccent"></div>
     <div class="toc-color-row"><label>文字</label><input type="color" id="tcText"></div>
     <button id="tcReset">重置默认</button>
+    <span id="tcDebug" style="font-size:10px;color:#888;width:100%;margin-top:2px"></span>
   </div>
 </div>
 
@@ -328,6 +329,8 @@ function _tcApply(c){
   r.setProperty('--color-btn',_tcDim(c.bg,1.2));
   r.setProperty('--color-btn-hover',_tcDim(c.bg,1.4));
   r.setProperty('--color-block-hover',_tcDim(c.bg,1.08));
+  // 调试: 色盘下方显示当前值
+  if($('tcDebug')) $('tcDebug').textContent='bg='+c.bg+' accent='+c.accent+' text='+c.text;
 }
 function _tcSave(){
   const c={bg:$('tcBg').value,accent:$('tcAccent').value,text:$('tcText').value};
