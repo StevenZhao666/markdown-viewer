@@ -1386,7 +1386,7 @@ function _feEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').
 function feNodeHTML(node,path){
   const p=path.join('.');
   const editCls=_feEditingPath&&_feEditingPath.join('.')===p?' fe-editing':'';
-  const click='onclick="feEditNode(\''+p+'\')"';
+  const click='onclick="event.stopPropagation();feEditNode(\''+p+'\')"';
   switch(node.type){
     case 'text': return '<span class="fe-node fe-text" data-path="'+p+'" '+click+'>'+_feEsc(node.value)+'</span>';
     case 'placeholder': return '<span class="fe-node fe-ph" data-path="'+p+'" '+click+' title="点击输入"></span>';
@@ -1515,7 +1515,7 @@ function feInsertMtx(cols,rows){
 // mtx: 树渲染
 function feMtxHTML(node,path){
   const p=path.join('.');
-  const click='onclick="feEditNode(\''+p+'\')"';
+  const click='onclick="event.stopPropagation();feEditNode(\''+p+'\')"';
   let rows='';
   (node.cells||[]).forEach((rowArr,ri)=>{
     let cells=rowArr.map((cell,ci)=>'<span class="fe-mtx-cell">'+cell.map((c,i)=>feNodeHTML(c,path.concat('cells',ri,ci,i))).join('')+'</span>').join('');
