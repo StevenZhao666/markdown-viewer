@@ -159,6 +159,39 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 .fe-tpl-btn .fe-vis{font-size:16px;color:#ccc;margin-top:2px;font-family:'Times New Roman',serif}
 /* 可视化公式块 + Canvas */
 .fe-canvas{min-height:80px;padding:10px;background:var(--color-bg);border:1px solid #555;border-radius:4px;margin-bottom:6px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;font-size:16px;font-family:'Times New Roman',serif;color:var(--color-text)}
+
+/* v4.3.0 重构: 节点可点击+占位符 */
+.fe-node{display:inline-flex;vertical-align:middle;align-items:center;margin:0 1px;cursor:pointer;border-radius:3px;transition:background .1s}
+.fe-node:hover{background:var(--color-block-hover);outline:1px solid var(--color-accent)}
+.fe-node.fe-editing{outline:2px solid var(--color-accent);background:var(--color-bg-code)}
+.fe-text{padding:0 1px;color:var(--color-text)}
+.fe-ph{min-width:26px;height:26px;border:2px dashed var(--color-accent-dim);border-radius:4px;background:var(--color-bg-tertiary)}
+.fe-ph:hover{background:var(--color-btn-hover)}
+.fe-subsup{position:relative}
+.fe-subsup-base{display:inline-block}
+.fe-subsup-sup{font-size:.72em;vertical-align:super;line-height:1}
+.fe-subsup-sub{font-size:.72em;vertical-align:sub;line-height:1}
+.fe-int{display:inline-flex;align-items:center}
+.fe-int-sym{font-size:1.5em;margin-right:2px}
+.fe-int-sub{font-size:.7em;vertical-align:sub}
+.fe-int-sup{font-size:.7em;vertical-align:super}
+.fe-int-expr{display:inline-block;padding:0 2px}
+.fe-int-d{font-style:italic;margin:0 1px}
+.fe-sum{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 3px;line-height:1}
+.fe-sum-sym{font-size:1.4em}
+.fe-sum-sup{font-size:.68em}
+.fe-sum-sub{font-size:.68em}
+.fe-sum-expr{display:inline-block;margin-left:3px}
+.fe-lim{display:inline-flex;align-items:center;margin:0 3px}
+.fe-lim-text{font-style:italic;margin-right:1px}
+.fe-lim-sub{font-size:.7em;vertical-align:sub}
+.fe-lim-expr{display:inline-block;margin-left:2px}
+.fe-edit-box{display:inline-block;min-width:40px;padding:2px 6px;border:1px solid var(--color-accent);border-radius:4px;background:var(--color-bg-code);color:var(--color-text);font-family:'Consolas','Courier New',monospace;font-size:15px;outline:none;white-space:nowrap;vertical-align:middle}
+.fe-edit-box:focus{border-color:var(--color-accent);box-shadow:0 0 0 2px var(--color-accent-dim)}
+.fe-mtx{display:inline-flex;flex-direction:column;border-left:2px solid var(--color-text-dim);border-right:2px solid var(--color-text-dim);padding:3px 6px;margin:0 3px}
+.fe-mtx-row{display:flex;align-items:center}
+.fe-mtx-cell{display:inline-block;padding:0 4px;min-width:16px;text-align:center}
+.fe-mtx-cell:not(:first-child){border-left:1px dashed var(--color-border)}
 .fe-canvas .hint{color:#555;font-size:13px;width:100%}
 /* v4.1.10: 槽位——默认透明让预览可见，聚焦后显示编辑框 */
 .fe-slot{display:inline-block;position:relative;z-index:1;min-width:32px;padding:4px 8px;border:2px dashed transparent;border-radius:4px;background:transparent;color:transparent;caret-color:#e0e0e0;text-align:center;font-size:16px;font-family:'Times New Roman',serif;vertical-align:middle;outline:none;cursor:text}
@@ -212,7 +245,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.2.0</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.3.0</span></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
 </div>
@@ -1211,94 +1244,243 @@ let _canvasLatex='';
 let _replaceRange=null; // v4.1: 预览加载公式的原文位置 {s,e}
 // v4.1.10: 槽位双面——编辑层(下)+预览层(上,pointer-events穿透)
 // 点击直接穿透预览层到编辑层，浏览器原生聚焦
-function feSlot(ph){return '<span class="fe-slw"><span class="fe-slot" contenteditable="true" tabindex="0" data-ph="'+ph+'" oninput="feUpdate();_feCheckLatex(this)" onblur="feOnBlur(this)">'+ph+'</span><span class="fe-slr" data-ph="'+ph+'">'+ph+'</span></span>';}
-// v4.2.0: 键盘直输LaTeX命令自动转可视化块(如输入\frac{1}{2}→分式块)
-function _feCheckLatex(el){
-  if(!el) return;
-  const txt=el.textContent||'';
-  const rx=/\\frac\{[^{}]+\}\{[^{}]+\}|\\sqrt\{[^{}]+\}|\\int(?:\^\{[^{}]+\})?(?:_\{[^{}]+\})?|\\sum(?:\^\{[^{}]+\})?(?:_\{[^{}]+\})?|\\prod(?:\^\{[^{}]+\})?(?:_\{[^{}]+\})?|\\lim(?:_\{[^{}]+\})?/;
-  const m=rx.exec(txt);
-  if(!m) return;
-  const html=_latexToHTML(m[0]);
-  if(!html) return;
-  const before=txt.slice(0,m.index);
-  const after=txt.slice(m.index+m[0].length);
-  el.innerHTML=before+html+after;
-  // 光标定位到新块后面
-  const r=document.createRange();
-  r.selectNodeContents(el); r.collapse(false);
-  const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
-  _focusedSlot=el;
-  feUpdate();
-}
-function feOnFocus(el){_focusedSlot=el;}
-// 点击槽位设置_focusedSlot（聚焦由浏览器pointer-events穿透原生处理）
-document.addEventListener('click',function(e){
-  var s=e.target.closest('.fe-slot'); if(s){
-    _focusedSlot=s;
-    s.focus();
-    return;
+
+// ═══════════════ v4.3.0 公式编辑器重构 ═══════════════
+// 单一数据源: 公式 = 一棵对象树(feTree)。渲染=树→DOM, 序列化=树→LaTeX
+// 点击任意节点(含子节点)→该节点局部转源码编辑→失焦解析回树→重渲染
+// 节点: {type, ...}
+//   text        {type:'text', value}
+//   placeholder {type:'placeholder'}              占位符(?)
+//   frac        {type:'frac', num:[], den:[]}
+//   sqrt        {type:'sqrt', body:[]}
+//   subsup      {type:'subsup', base:[], sup:[], sub:[]}
+//   int         {type:'int', from:[], to:[], body:[]}
+//   sum         {type:'sum', sym:'Σ'|'Π', from:[], to:[], body:[]}
+//   lim         {type:'lim', from:[], body:[]}
+let feTree=[];                 // 根序列(节点数组)
+let _feEditingPath=null;       // 当前编辑的节点路径(数组), null=未编辑
+
+// ── LaTeX → 树 (递归下降解析, 精简版) ──
+function feParse(latex){
+  let s=(latex||'').trim();
+  if(s.startsWith('$$')&&s.endsWith('$$')) s=s.slice(2,-2);
+  else if(s.startsWith('$')&&s.endsWith('$')) s=s.slice(1,-1);
+  s=s.trim(); if(!s) return [];
+  const nodes=[]; let i=0;
+  function skip(){while(i<s.length&&/\s/.test(s[i]))i++;}
+  function braced(){
+    if(s[i]!=='{') return null;
+    let d=1,j=i+1;
+    while(j<s.length&&d>0){if(s[j]==='{')d++;else if(s[j]==='}')d--;j++;}
+    const r=s.substring(i+1,j-1); i=j; return r;
   }
-});
-function feOnBlur(el){
-  if(!el.textContent.trim()) el.textContent='';
-  var w=el.closest('.fe-slw'); if(!w){ feUpdate(); return; }
-  w.classList.remove('editing');
-  var prev=w.querySelector(':scope>.fe-slr'); // 只取本槽位直接子预览层
-  if(prev){
-    if(el.querySelector('.fe-frac,.fe-sqrt,.fe-int,.fe-sup,.fe-sum,.fe-lim,.fe-mtx')){
-      // 有子公式块→隐藏本层预览,子公式块结构可见
-      prev.style.visibility='hidden';
-    }else{
-      var txt=el.textContent.trim();
-      if(txt){try{if(typeof katex!=='undefined')katex.render(txt,prev,{throwOnError:false});else prev.textContent=txt;}catch(e){prev.textContent=txt;}}
+  function group(str){
+    const savedS=s,savedI=i; s=str; i=0;
+    const arr=[]; while(i<s.length) one(arr);
+    const r=arr; s=savedS; i=savedI; return r;
+  }
+  function scripts(arr){
+    // 处理 ^ _ 后缀
+    skip();
+    if(s[i]==='^'||s[i]==='_'){
+      const kind=s[i]==='^'?'sup':'sub'; i++;
+      skip(); let argStr=braced();
+      if(argStr===null){ argStr=s[i]||''; if(argStr&&argStr!=='{') i++; }
+      const kids=argStr?group(argStr):[];
+      const prev=arr[arr.length-1];
+      if(prev&&(prev.type==='subsup')){
+        prev[kind]=kids;
+      }else if(prev&&(prev.type==='text'||prev.type==='placeholder')){
+        arr[arr.length-1]={type:'subsup',base:[prev],sup:kind==='sup'?kids:[],sub:kind==='sub'?kids:[]};
+      }else if(prev&&(prev.type==='frac'||prev.type==='sqrt'||prev.type==='int'||prev.type==='sum'||prev.type==='lim'||prev.type==='subsup')){
+        // 结构节点后跟上标: 新建subsup挂在结构后
+        arr[arr.length-1]={type:'subsup',base:[prev],sup:kind==='sup'?kids:[],sub:kind==='sub'?kids:[]};
+      }else{
+        arr.push({type:'subsup',base:[],sup:kind==='sup'?kids:[],sub:kind==='sub'?kids:[]});
+      }
     }
   }
-  feUpdate();
-}
-function _slotLatex(slot){
-  try{
-    const frac=slot.querySelector('.fe-frac'); if(frac) return genBlockLatex(frac);
-    const sqrt=slot.querySelector('.fe-sqrt'); if(sqrt) return genBlockLatex(sqrt);
-    const int=slot.querySelector('.fe-int'); if(int) return genBlockLatex(int);
-    const sup=slot.querySelector('.fe-sup'); if(sup) return genBlockLatex(sup);
-    const sum=slot.querySelector('.fe-sum'); if(sum) return genBlockLatex(sum);
-    const lim=slot.querySelector('.fe-lim'); if(lim) return genBlockLatex(lim);
-    const mtx=slot.querySelector('.fe-mtx'); if(mtx) return genBlockLatex(mtx);
-  }catch(e){}
-  const t=slot.textContent?slot.textContent.trim():'';
-  return t||slot.dataset.ph||'?';
-}
-function _feTarget(){return document.activeElement?.closest('.fe-slot')||_focusedSlot||$('feCanvas');}
-// v4.1.12: 往目标添加块——若目标是槽位则先清除残留文本,再插入
-function _feAppend(html){
-  var t=_feTarget();
-  if(t.classList&&t.classList.contains('fe-slot')) t.textContent='';
-  t.insertAdjacentHTML('beforeend',html);
-  feUpdate();
+  function one(arr){
+    skip(); if(i>=s.length) return;
+    const ch=s[i];
+    if(ch==='{'){
+      const inner=braced(); const kids=inner?group(inner):[];
+      arr.push(...kids); scripts(arr); return;
+    }
+    if(ch==='\\'){
+      const m=/^\\(frac|sqrt|int|sum|prod|lim)\*?/.exec(s.slice(i));
+      if(m){
+        i+=m[0].length; skip();
+        const cmd=m[1];
+        if(cmd==='frac'){
+          const n=braced(),d=braced();
+          arr.push({type:'frac',num:n?group(n):[{type:'placeholder'}],den:d?group(d):[{type:'placeholder'}]});
+          scripts(arr); return;
+        }
+        if(cmd==='sqrt'){
+          const b=braced();
+          arr.push({type:'sqrt',body:b?group(b):[{type:'placeholder'}]});
+          scripts(arr); return;
+        }
+        if(cmd==='int'){
+          const f=braced(),t=braced(),b=braced();
+          arr.push({type:'int',from:f?group(f):[{type:'placeholder'}],to:t?group(t):[{type:'placeholder'}],body:b?group(b):[{type:'placeholder'}]});
+          scripts(arr); return;
+        }
+        if(cmd==='sum'||cmd==='prod'){
+          const f=braced(),t=braced(),b=braced();
+          arr.push({type:'sum',sym:cmd==='sum'?'Σ':'Π',from:f?group(f):[{type:'placeholder'}],to:t?group(t):[{type:'placeholder'}],body:b?group(b):[{type:'placeholder'}]});
+          scripts(arr); return;
+        }
+        if(cmd==='lim'){
+          const f=braced(),b=braced();
+          arr.push({type:'lim',from:f?group(f):[{type:'placeholder'}],body:b?group(b):[{type:'placeholder'}]});
+          scripts(arr); return;
+        }
+      }
+      const t=/\\[a-zA-Z]+|\\[^a-zA-Z]/.exec(s.slice(i));
+      if(t){ i+=t[0].length; arr.push({type:'text',value:t[0]}); scripts(arr); return; }
+    }
+    if(ch==='^'||ch==='_'){
+      const kind=ch==='^'?'sup':'sub'; i++; skip();
+      let argStr=braced();
+      if(argStr===null){ argStr=s[i]||''; if(argStr&&argStr!=='{') i++; }
+      const kids=argStr?group(argStr):[];
+      arr.push({type:'subsup',base:[],sup:kind==='sup'?kids:[],sub:kind==='sub'?kids:[]});
+      return;
+    }
+    if(ch==='?'){
+      i++; arr.push({type:'placeholder'}); scripts(arr); return;
+    }
+    const t=/[a-zA-Z0-9πΣΠ∫√∞=+\-×÷<>≤≥±·.,;:]+/.exec(s.slice(i));
+    if(t){ i+=t[0].length; arr.push({type:'text',value:t[0]}); scripts(arr); return; }
+    i++; arr.push({type:'text',value:ch}); scripts(arr);
+  }
+  while(i<s.length) one(nodes);
+  return nodes;
 }
 
-function feAddFrac(){
-  _feAppend('<span class="fe-frac"><span class="fe-frac-num">'+feSlot('a')+'</span><div class="fe-frac-line"></div><span class="fe-frac-den">'+feSlot('b')+'</span></span>');
+// ── 树 → LaTeX (递归序列化, 每层默认值防undefined) ──
+function feTreeToLatex(nodes){
+  return nodes.map(n=>{
+    switch(n.type){
+      case 'text': return n.value||'';
+      case 'placeholder': return '?';
+      case 'frac': return '\\frac{'+(feTreeToLatex(n.num||[])||'?')+'}{'+(feTreeToLatex(n.den||[])||'?')+'}';
+      case 'sqrt': return '\\sqrt{'+(feTreeToLatex(n.body||[])||'?')+'}';
+      case 'subsup':
+        return feTreeToLatex(n.base||[])+(n.sup&&n.sup.length?'^{'+feTreeToLatex(n.sup)+'}':'')+(n.sub&&n.sub.length?'_{'+feTreeToLatex(n.sub)+'}':'');
+      case 'int': return '\\int'+(n.from&&n.from.length?'_{'+feTreeToLatex(n.from)+'}':'')+(n.to&&n.to.length?'^{'+feTreeToLatex(n.to)+'}':'')+'{'+feTreeToLatex(n.body||[])+'}';
+      case 'sum': return '\\'+(n.sym==='Π'?'prod':'sum')+(n.from&&n.from.length?'_{'+feTreeToLatex(n.from)+'}':'')+(n.to&&n.to.length?'^{'+feTreeToLatex(n.to)+'}':'')+'{'+feTreeToLatex(n.body||[])+'}';
+      case 'lim': return '\\lim'+(n.from&&n.from.length?'_{'+feTreeToLatex(n.from)+'}':'')+'{'+feTreeToLatex(n.body||[])+'}';
+      case 'mtx': return feMtxLatex(n);
+      default: return '';
+    }
+  }).join('');
 }
-function feAddSqrt(){
-  _feAppend('<span class="fe-sqrt"><span class="fe-sqrt-sign">√</span><span class="fe-sqrt-overline">'+feSlot('x')+'</span></span>');
+function _feSub(nodes,path){ let cur=nodes; for(const i of path){ if(!cur[i]) return null; cur=cur[i]; } return cur; }
+function _feParentPath(nodes,path){ const p=path.slice(0,-1); const last=path[path.length-1]; return {parent:_feSub(nodes,p)||nodes, idx:last, ppath:p}; }
+
+// ── 树 → DOM (递归渲染, 每个节点可点击, data-path) ──
+function _feEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function feNodeHTML(node,path){
+  const p=path.join('.');
+  const editCls=_feEditingPath&&_feEditingPath.join('.')===p?' fe-editing':'';
+  const click='onclick="feEditNode(\''+p+'\')"';
+  switch(node.type){
+    case 'text': return '<span class="fe-node fe-text" data-path="'+p+'" '+click+'>'+_feEsc(node.value)+'</span>';
+    case 'placeholder': return '<span class="fe-node fe-ph" data-path="'+p+'" '+click+' title="点击输入"></span>';
+    case 'frac':
+      return '<span class="fe-node fe-frac" data-path="'+p+'" '+click+'><span class="fe-frac-num">'+(node.num||[]).map((c,i)=>feNodeHTML(c,path.concat('num',i))).join('')+'</span><div class="fe-frac-line"></div><span class="fe-frac-den">'+(node.den||[]).map((c,i)=>feNodeHTML(c,path.concat('den',i))).join('')+'</span></span>';
+    case 'sqrt':
+      return '<span class="fe-node fe-sqrt" data-path="'+p+'" '+click+'><span class="fe-sqrt-sign">√</span><span class="fe-sqrt-overline">'+(node.body||[]).map((c,i)=>feNodeHTML(c,path.concat('body',i))).join('')+'</span></span>';
+    case 'subsup':
+      return '<span class="fe-node fe-subsup" data-path="'+p+'" '+click+'><span class="fe-subsup-base">'+(node.base||[]).map((c,i)=>feNodeHTML(c,path.concat('base',i))).join('')+'</span>'+(node.sup&&node.sup.length?'<sup class="fe-subsup-sup">'+node.sup.map((c,i)=>feNodeHTML(c,path.concat('sup',i))).join('')+'</sup>':'')+(node.sub&&node.sub.length?'<sub class="fe-subsup-sub">'+node.sub.map((c,i)=>feNodeHTML(c,path.concat('sub',i))).join('')+'</sub>':'')+'</span>';
+    case 'int':
+      return '<span class="fe-node fe-int" data-path="'+p+'" '+click+'><span class="fe-int-sym">∫</span>'+(node.from&&node.from.length?'<sub class="fe-int-sub">'+node.from.map((c,i)=>feNodeHTML(c,path.concat('from',i))).join('')+'</sub>':'')+(node.to&&node.to.length?'<sup class="fe-int-sup">'+node.to.map((c,i)=>feNodeHTML(c,path.concat('to',i))).join('')+'</sup>':'')+'<span class="fe-int-expr">'+(node.body||[]).map((c,i)=>feNodeHTML(c,path.concat('body',i))).join('')+'<span class="fe-int-d">d</span></span></span>';
+    case 'sum':
+      return '<span class="fe-node fe-sum" data-path="'+p+'" '+click+'><span class="fe-sum-sup">'+(node.to&&node.to.length?node.to.map((c,i)=>feNodeHTML(c,path.concat('to',i))).join(''):'')+'</span><span class="fe-sum-sym">'+node.sym+'</span><span class="fe-sum-sub">'+(node.from&&node.from.length?node.from.map((c,i)=>feNodeHTML(c,path.concat('from',i))).join(''):'')+'</span><span class="fe-sum-expr">'+(node.body||[]).map((c,i)=>feNodeHTML(c,path.concat('body',i))).join('')+'</span></span>';
+    case 'lim':
+      return '<span class="fe-node fe-lim" data-path="'+p+'" '+click+'><span class="fe-lim-text">lim</span>'+(node.from&&node.from.length?'<sub class="fe-lim-sub">'+node.from.map((c,i)=>feNodeHTML(c,path.concat('from',i))).join('')+'</sub>':'')+'<span class="fe-lim-expr">'+(node.body||[]).map((c,i)=>feNodeHTML(c,path.concat('body',i))).join('')+'</span></span>';
+    case 'mtx': return feMtxHTML(node,path);
+    default: return '';
+  }
 }
-function feAddInt(){
-  _feAppend('<span class="fe-int"><span class="fe-int-sym">∫</span><span class="fe-int-sub">'+feSlot('a')+'</span><span class="fe-int-sup"><sup>'+feSlot('b')+'</sup></span><span class="fe-int-expr">'+feSlot('f(x)')+'<span>d</span>'+feSlot('x')+'</span></span>');
+function feRender(){
+  const c=$('feCanvas');
+  const editingPath=_feEditingPath? _feEditingPath.join('.'):null;
+  if(editingPath){
+    // 全量渲染, 但编辑中的节点替换为源码输入框
+    const rootPath=editingPath.split('.').slice(0,-1).join('.');
+    // 简单处理: 整树渲染, 编辑节点单独处理
+  }
+  const html=feTree.map((n,i)=>feNodeHTML(n,[i])).join('');
+  c.innerHTML=html||'<span class="hint">👆 点模板添加公式</span>';
+  _feSyncLatex();
 }
-function feAddSup(){
-  _feAppend('<span class="fe-sup"><span class="fe-sup-dot">·</span><sup>'+feSlot('n')+'</sup></span>');
+
+// ── 点击节点 → 局部转源码编辑 ──
+function feEditNode(pathStr){
+  const path=pathStr.split('.').map(x=>isNaN(x)?x:parseInt(x));
+  const node=_feSub(feTree,path);
+  if(!node) return;
+  // 源码框: 在画布中该节点位置显示contenteditable源码
+  _feEditingPath=path;
+  const html=feTree.map((n,i)=>feNodeHTML(n,[i])).join('');
+  const c=$('feCanvas');
+  c.innerHTML=html; // 重渲染使该节点加 fe-editing class
+  // 找到该节点DOM, 替换为输入框
+  const el=c.querySelector('.fe-node[data-path="'+path.join('.')+'"]');
+  if(!el) return;
+  const inp=document.createElement('span');
+  inp.className='fe-edit-box'; inp.contentEditable='true'; inp.spellcheck=false;
+  inp.textContent=feTreeToLatex([node]);
+  el.replaceWith(inp);
+  inp.focus();
+  const sel=window.getSelection(); const r=document.createRange();
+  r.selectNodeContents(inp); sel.removeAllRanges(); sel.addRange(r);
+  // Enter提交, 失焦提交
+  inp.onkeydown=e=>{
+    if(e.key==='Enter'){ e.preventDefault(); feCommitEdit(inp,path); }
+    if(e.key==='Escape'){ feCancelEdit(); }
+    e.stopPropagation();
+  };
+  inp.onblur=()=>feCommitEdit(inp,path);
+  inp.addEventListener('click',e=>e.stopPropagation());
 }
-function feAddSum(){
-  _feAppend('<span class="fe-sum"><span class="fe-sum-sup">'+feSlot('n')+'</span><span class="fe-sum-sym">Σ</span><span class="fe-sum-sub">'+feSlot('i=1')+'</span><span class="fe-sum-expr">'+feSlot('x()')+'</span></span>');
+
+// ── 提交编辑: 解析源码→替换树节点→重渲染 ──
+let _feCommitting=false;
+function feCommitEdit(inp,path){
+  if(_feCommitting) return; // 幂等: blur可能二次触发
+  _feCommitting=true;
+  try{
+    const src=inp.textContent.trim();
+    const newNode=feParse(src); // 可能是多节点
+    const {parent,idx}=_feParentPath(feTree,path);
+    if(newNode.length===0){
+      parent.splice(idx,1);
+    }else if(newNode.length===1){
+      parent[idx]=newNode[0];
+    }else{
+      parent.splice(idx,1,...newNode);
+    }
+    _feEditingPath=null;
+    feRender();
+  }finally{ _feCommitting=false; }
 }
-function feAddLim(){
-  _feAppend('<span class="fe-lim"><span class="fe-lim-text">lim</span><span class="fe-lim-sub">'+feSlot('x→0')+'</span><span class="fe-lim-expr">'+feSlot('f')+'</span></span>');
-}
-function feAddProd(){
-  _feAppend('<span class="fe-sum"><span class="fe-sum-sup">'+feSlot('n')+'</span><span class="fe-sum-sym">Π</span><span class="fe-sum-sub">'+feSlot('i=1')+'</span><span class="fe-sum-expr">'+feSlot('x()')+'</span></span>');
-}
+function feCancelEdit(){ _feEditingPath=null; feRender(); }
+
+// ── 模板按钮: 在根序列追加节点 ──
+function _fePush(node){ feTree.push(node); _feEditingPath=null; feRender(); }
+function feAddFrac(){ _fePush({type:'frac',num:[{type:'placeholder'}],den:[{type:'placeholder'}]}); }
+function feAddSqrt(){ _fePush({type:'sqrt',body:[{type:'placeholder'}]}); }
+function feAddInt(){ _fePush({type:'int',from:[{type:'placeholder'}],to:[{type:'placeholder'}],body:[{type:'placeholder'}]}); }
+function feAddSup(){ _fePush({type:'subsup',base:[{type:'placeholder'}],sup:[{type:'placeholder'}],sub:[]}); }
+function feAddSum(){ _fePush({type:'sum',sym:'Σ',from:[{type:'placeholder'}],to:[{type:'placeholder'}],body:[{type:'placeholder'}]}); }
+function feAddProd(){ _fePush({type:'sum',sym:'Π',from:[{type:'placeholder'}],to:[{type:'placeholder'}],body:[{type:'placeholder'}]}); }
+function feAddLim(){ _fePush({type:'lim',from:[{type:'placeholder'}],body:[{type:'placeholder'}]}); }
+// ── 矩阵 ──
 function feAddMtx(){
   const pk=$('tbGridPicker'); const cells=$('tbGridCells'); const label=$('tbGridLabel');
   const maxC=6,maxR=5; let hoverC=3,hoverR=2;
@@ -1322,50 +1504,74 @@ function feAddMtx(){
   pk.classList.add('show');
 }
 function feInsertMtx(cols,rows){
-  let inner='';
+  const cells=[];
   for(let r=0;r<rows;r++){
-    for(let c=0;c<cols;c++){
-      inner+=feSlot(String.fromCharCode(97+r*cols+c));
-      if(c<cols-1) inner+=' ';
-    }
-    if(r<rows-1) inner+=' ; ';
+    const rowArr=[];
+    for(let c=0;c<cols;c++) rowArr.push([{type:'placeholder'}]);
+    cells.push(rowArr);
   }
-  _feAppend(
-    '<span class="fe-mtx" data-cols="'+cols+'" data-rows="'+rows+'">[ '+inner+' ]</span>');
+  _fePush({type:'mtx',cols,rows,cells});
 }
+// mtx: 树渲染
+function feMtxHTML(node,path){
+  const p=path.join('.');
+  const click='onclick="feEditNode(\''+p+'\')"';
+  let rows='';
+  (node.cells||[]).forEach((rowArr,ri)=>{
+    let cells=rowArr.map((cell,ci)=>'<span class="fe-mtx-cell">'+cell.map((c,i)=>feNodeHTML(c,path.concat('cells',ri,ci,i))).join('')+'</span>').join('');
+    rows+='<span class="fe-mtx-row">'+cells+'</span>';
+  });
+  return '<span class="fe-node fe-mtx" data-path="'+p+'" '+click+'>'+rows+'</span>';
+}
+function feMtxLatex(node){
+  const cols=node.cols||2;
+  let m='\\begin{bmatrix}';
+  (node.cells||[]).forEach((rowArr,ri)=>{
+    if(ri>0) m+=' \\\\ ';
+    m+=rowArr.map(cell=>feTreeToLatex(cell||[])||'?').join(' & ');
+  });
+  return m+'\\end{bmatrix}';
+}
+
+// ── 画布内快速模板: 选中内容转分式等 ──
+function _feSyncLatex(){
+  const latex=feTreeToLatex(feTree);
+  $('feLatexCode').textContent=latex||'(空)';
+  $('feEditor').style.display=latex?'':'none';
+  _canvasLatex=latex;
+  _livePreview();
+}
+
 function feClear(){
-  _focusedSlot=null; _canvasLatex=''; _replaceRange=null;
-  $('feCanvas').innerHTML='<span class="hint">👆 点模板添加，点槽位可嵌套</span>';
-  feUpdate();
+  feTree=[]; _feEditingPath=null; _focusedSlot=null; _canvasLatex=''; _replaceRange=null;
+  $('feCanvas').innerHTML='<span class="hint">👆 点模板添加公式</span>';
+  $('feLatexCode').textContent='(空)';
+  $('feEditor').style.display='none';
+  _livePreview();
 }
-// v4.1.8: fe-raw contenteditable 输入时更新预览
+function feUpdate(){ feRender(); }
+// 编辑框直输原始LaTeX(不转可视化)
 function feUpdateRaw(){
   const raw=document.querySelector('.fe-raw');
   if(raw){ _canvasLatex=raw.textContent.trim(); _livePreview(); }
 }
-
-// v4.1: 从预览双击公式→载入canvas编辑
+// 从预览载入公式: LaTeX→树→渲染
 function feLoadLatex(latex){
-  _focusedSlot=null;
-  // 尝试反向解析LaTeX为可视化块
-  const html=_latexToHTML(latex);
-  if(html){
-    $('feCanvas').innerHTML=html;
-    feUpdate(); // 有可视化块才重算
+  feTree=feParse(latex); _feEditingPath=null; _focusedSlot=null;
+  if(feTree.length>0){
+    feRender();
+    $('feEditor').style.display='';
   }else{
-    // 无法可视化：显示公式原文（contenteditable，可手动编辑）
-    $('feCanvas').innerHTML='<span class="fe-raw" contenteditable="true" style="color:#ccc;font-size:15px" oninput="feUpdateRaw()">'+latex.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span>';
+    $('feCanvas').innerHTML='<span class="fe-raw" contenteditable="true" style="color:#ccc;font-size:15px" oninput="feUpdateRaw()">'+_feEsc(latex)+'</span>';
     $('feLatexCode').textContent=latex;
     _canvasLatex=latex;
+    $('feEditor').style.display='';
   }
-  $('feEditor').style.display='';
   if(!$('toolbar').classList.contains('show')) $('toolbar').classList.add('show');
   const pv=document.querySelector('.block-edit-preview');
   if(pv&&pv.style.display==='none') pv.style.display='';
-  // 在编辑框中搜索原文公式位置（供插入时替换）
   const ta=document.querySelector('.block-editor');
   if(ta){
-    // 允许$$和公式间有换行/空格（常见于display math）
     const escaped=latex.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
     const regex=new RegExp('\\$\\$?\\s*'+escaped+'\\s*\\$?\\$');
     const m=ta.value.match(regex);
@@ -1373,217 +1579,27 @@ function feLoadLatex(latex){
   }
   _livePreview();
 }
-
-// 辅助：解析{...}（支持嵌套花括号）
-function _parseBraces(text,pos){
-  if(!text||pos>=text.length||text[pos]!=='{') return {content:'',pos};
-  let depth=1,i=pos+1;
-  while(i<text.length&&depth>0){
-    if(text[i]==='{') depth++;
-    else if(text[i]==='}') depth--;
-    i++;
-  }
-  return {content:text.substring(pos+1,i-1),pos:i};
-}
-
-// LaTeX→可视化块HTML（反向解析核心）
-function _latexToHTML(latex){
-  if(!latex) return '';
-  // 去外层 $...$
-  let s=latex.trim();
-  if(s.startsWith('$')) s=s.slice(1);
-  if(s.endsWith('$')) s=s.slice(0,-1);
-  s=s.trim(); if(!s) return '';
-  
-  // 辅助: 把公式块HTML包裹成fe-slw槽位(保持与手动嵌套结构一致)
-  const _wrap=(html,ph)=>html?(html.startsWith('<span class="fe-slw"')?html:'<span class="fe-slw"><span class="fe-slot">'+html+'</span><span class="fe-slr">'+html.replace(/<[^>]*>/g,'')+'</span></span>'):feSlot(ph);
-  
-  // 尝试匹配各种模板 — 顺序重要（更长的模式优先）
-  let m;
-  
-  // \frac{num}{den}
-  if(s.startsWith('\\frac')){
-    const num=_parseBraces(s,5);
-    const den=_parseBraces(s,num.pos);
-    const numHtml=_latexToHTML(num.content);
-    const denHtml=_latexToHTML(den.content);
-    return '<span class="fe-frac"><span class="fe-frac-num">'+
-      _wrap(numHtml,num.content||'a')+'</span><div class="fe-frac-line"></div><span class="fe-frac-den">'+
-      _wrap(denHtml,den.content||'b')+'</span></span>';
-  }
-  
-  // \sqrt{arg}
-  if(s.startsWith('\\sqrt')){
-    const arg=_parseBraces(s,5);
-    const argHtml=_latexToHTML(arg.content)||feSlot(arg.content||'x');
-    return '<span class="fe-sqrt"><span class="fe-sqrt-sign">√</span><span class="fe-sqrt-overline">'+argHtml+'</span></span>';
-  }
-  
-  // \int_{lower}^{upper} ... d var
-  if(s.startsWith('\\int')){
-    let lower='',upper='',rest='',varName='x';
-    let idx=4;
-    if(s[idx]==='_'){ const b=_parseBraces(s,idx+1); lower=b.content; idx=b.pos; }
-    if(s[idx]==='^'){ const b=_parseBraces(s,idx+1); upper=b.content; idx=b.pos; }
-    rest=s.substring(idx).trim();
-    // 尝试分离 expr 和 d var
-    const dIdx=rest.lastIndexOf(' d');
-    if(dIdx>0){ 
-      const after=rest.substring(dIdx+2).trim();
-      const spaceIdx=after.indexOf(' ');
-      if(spaceIdx>0){
-        varName=after.substring(0,spaceIdx);
-        // d var后面的内容追加回表达式(如 =√π),保持完整性
-        rest=rest.substring(0,dIdx)+' '+after.substring(spaceIdx+1);
-      }else{
-        varName=after||'x';
-        rest=rest.substring(0,dIdx);
-      }
-      rest=rest.trim();
-    }
-    const lowerHtml=_latexToHTML(lower)||feSlot(lower||'a');
-    const upperHtml=_latexToHTML(upper)||feSlot(upper||'b');
-    const exprHtml=_latexToHTML(rest)||feSlot(rest||'f(x)');
-    return '<span class="fe-int"><span class="fe-int-sym">∫</span><span class="fe-int-sub">'+lowerHtml+'</span><span class="fe-int-sup"><sup>'+upperHtml+'</sup></span><span class="fe-int-expr">'+exprHtml+'<span>d</span>'+feSlot(varName)+'</span></span>';
-  }
-  
-  // \sum_{lower}^{upper} expr  或  \prod_{lower}^{upper} expr
-  if((m=/^\\(sum|prod)_/.exec(s))){
-    const cmd=m[1];
-    let lower='',upper='',expr='';
-    let idx=m[0].length-1; // position after _
-    const lb=_parseBraces(s,idx); lower=lb.content; idx=lb.pos;
-    if(s[idx]==='^'){ const ub=_parseBraces(s,idx+1); upper=ub.content; idx=ub.pos; }
-    expr=s.substring(idx).trim();
-    const symChar=cmd==='sum'?'Σ':'Π';
-    const lowerHtml=_latexToHTML(lower)||feSlot(lower||'i=1');
-    const upperHtml=_latexToHTML(upper)||feSlot(upper||'n');
-    const exprHtml=_latexToHTML(expr)||feSlot(expr||'x()');
-    return '<span class="fe-sum"><span class="fe-sum-sup">'+upperHtml+'</span><span class="fe-sum-sym">'+symChar+'</span><span class="fe-sum-sub">'+lowerHtml+'</span><span class="fe-sum-expr">'+exprHtml+'</span></span>';
-  }
-  
-  // \lim_{sub} expr
-  if(s.startsWith('\\lim')){
-    let sub='',expr='';
-    let idx=4;
-    if(s[idx]==='_'){ const b=_parseBraces(s,idx+1); sub=b.content; idx=b.pos; }
-    expr=s.substring(idx).trim();
-    const subHtml=_latexToHTML(sub)||feSlot(sub||'x→0');
-    const exprHtml=_latexToHTML(expr)||feSlot(expr||'f');
-    return '<span class="fe-lim"><span class="fe-lim-text">lim</span><span class="fe-lim-sub">'+subHtml+'</span><span class="fe-lim-expr">'+exprHtml+'</span></span>';
-  }
-  
-  // ^{sup}
-  if(s.startsWith('^')){
-    const sup=_parseBraces(s,1);
-    const supHtml=_latexToHTML(sup.content)||feSlot(sup.content||'n');
-    return '<span class="fe-sup"><span class="fe-sup-dot">·</span><sup>'+supHtml+'</sup></span>';
-  }
-  
-
-  // 普通表达式/无法结构化（如 e^{iπ}+1=0）— 生成单个可编辑槽位
-  // 预览层KaTeX渲染+点击进入编辑，与手动添加的槽位行为一致
-  return feSlot(s);
-}
-
-function _getFormulaLatex(el){
-  // 优先从自定义 math-live 取
-  if(el.classList.contains('math-live')) return el.dataset.latex;
-  // 从 KaTeX auto-render 结果取 annotation（如果存在）
-  const ann=el.querySelector('annotation[encoding="application/x-tex"]');
-  if(ann) return ann.textContent;
-  return null;
-}
-function genBlockLatex(blk){
-  // 只取直接属于本块的槽位(排除嵌套子公式内部的槽位,否则顺序错乱)
-  const slots=[...blk.querySelectorAll('.fe-slot')].filter(s=>{
-    let p=s.parentElement;
-    while(p&&p!==blk){
-      if(p.matches&&p.matches('.fe-frac,.fe-sqrt,.fe-int,.fe-sup,.fe-sum,.fe-lim,.fe-mtx')) return false;
-      p=p.parentElement;
-    }
-    return true;
-  });
-  const v=slots.map(s=>_slotLatex(s)||'?');
-  const g=(i,d)=>v[i]||d;
-  if(blk.classList.contains('fe-frac')) return '\frac{'+g(0,'?')+'}{'+g(1,'?')+'}';
-  if(blk.classList.contains('fe-sqrt')) return '\sqrt{'+g(0,'?')+'}';
-  if(blk.classList.contains('fe-int')) return '\int_{'+g(0,'?')+'}^{'+g(1,'?')+'} '+g(2,'?')+' d'+g(3,'x');
-  if(blk.classList.contains('fe-sup')) return '^{'+g(0,'?')+'}';
-  if(blk.classList.contains('fe-sum')){
-    const sym=blk.querySelector('.fe-sum-sym').textContent;
-    const symCmd={'Σ':'sum','Π':'prod'};
-    return '\\\\'+(symCmd[sym]||sym.toLowerCase())+'_{'+g(1,'?')+'}^{'+g(0,'?')+'} '+g(2,'?');
-  }
-  if(blk.classList.contains('fe-lim')) return '\lim_{'+g(0,'?')+'} '+g(1,'?');
-  if(blk.classList.contains('fe-mtx')){
-    const cols=parseInt(blk.dataset.cols)||2, rows=v.length/cols;
-    let m='\\begin{bmatrix}';
-    for(let r=0;r<rows;r++){if(r>0) m+=' \\\\ '; m+=v.slice(r*cols,(r+1)*cols).join(' & ');}
-    return m+' \\end{bmatrix}';
-  }
-  return '';
-}
-// v4.1.10: 渲染所有槽位预览(从编辑层→其后.pre-slr)
-function _renderSlotPreviews(){
-  const slots=[...document.querySelectorAll('#feCanvas .fe-slot')];
-  let ok=0;
-  slots.forEach(edit=>{
-    const prev=edit.nextElementSibling;
-    if(!prev||!prev.classList.contains('fe-slr')) return;
-    if(edit.matches(':focus')) return; // 编辑中不刷新预览
-    const txt=(edit.textContent||'').trim();
-    if(!txt){ prev.innerHTML=''; return; }
-    // 有子公式块→隐藏本层预览(子公式块自身结构可见),避免双渲染
-    if(edit.querySelector('.fe-frac,.fe-sqrt,.fe-int,.fe-sup,.fe-sum,.fe-lim,.fe-mtx')){
-      prev.style.visibility='hidden';
-      return;
-    }
-    try{if(typeof katex!=='undefined'){katex.render(txt,prev,{throwOnError:false});ok++;}else prev.textContent=txt;}catch(e){prev.textContent=txt;}
-  });
-  console.log('🔍 slot预览:',slots.length+'个槽位, '+ok+'个KaTeX✅');
-}
-
-function feUpdate(){
-  const c=$('feCanvas');
-  const hint=c.querySelector('.hint');
-  if(hint) hint.remove();
-  // 槽位需要toolbar可见才能聚焦，自动打开
-  if(!$('toolbar').classList.contains('show')) $('toolbar').classList.add('show');
-  let latex='';
-  [...c.children].forEach(blk=>{
-    const cls=blk.className||'';
-    if(/fe-(frac|sqrt|int|sup|sum|lim|mtx)/.test(cls)) latex+=genBlockLatex(blk);
-    else if(cls.includes('fe-slw')) latex+=_slotLatex(blk.querySelector('.fe-slot'));
-  });
-  $('feLatexCode').textContent=latex||'(空)';
-  $('feEditor').style.display=latex?'':'none';
-  _canvasLatex=latex;
-  _renderSlotPreviews(); // v4.1.9: 刷新槽位KaTeX预览
-  _livePreview(); // 让预览合并编辑框文本+canvas公式
-}
 function feInsert(){
   let l=$('feLatexCode').textContent;
   if(l==='(空)') return;
   if(!l.startsWith('$')) l='$'+l+'$';
   const ta=document.querySelector('.block-editor'); if(!ta) return;
   const s=ta.selectionStart;
-  // 如果是从预览加载的公式，替换原文旧公式
   if(_replaceRange){
     ta.value=ta.value.substring(0,_replaceRange.s)+l+ta.value.substring(_replaceRange.e);
     ta.selectionStart=ta.selectionEnd=_replaceRange.s+l.length;
     _replaceRange=null;
   }else{
-    // 防$粘连
     let prefix='', suffix='';
     if(s>0 && ta.value[s-1]==='$') prefix=' ';
     if(s<ta.value.length && ta.value[s]==='$') suffix=' ';
     ta.value=ta.value.substring(0,s)+prefix+l+suffix+ta.value.substring(s);
     ta.selectionStart=ta.selectionEnd=s+prefix.length+l.length+suffix.length;
   }
-  _canvasLatex=''; feClear(); // 公式已进入编辑框，清理canvas状态
+  _canvasLatex=''; feClear();
   ta.focus(); _autoSizeTA(ta); _livePreview();
 }
+
 restoreHandle();
 
 // ── 加载文件（Python 助手） ──
