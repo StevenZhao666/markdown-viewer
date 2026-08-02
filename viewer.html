@@ -68,6 +68,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 #tocList .toc-item.lvl5{padding-left:62px;font-size:11px;color:#777}
 #tocList .toc-item.lvl6{padding-left:72px;font-size:11px;color:#666}
 .toc-empty{padding:20px;text-align:center;color:#999;font-size:13px}
+#tocColors{border-top:1px solid #444;padding:8px 12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.toc-color-row{display:flex;align-items:center;gap:4px;font-size:11px;color:#999}
+.toc-color-row input[type="color"]{width:24px;height:20px;border:1px solid #555;border-radius:3px;padding:0;cursor:pointer;background:none}
+.toc-color-row input[type="color"]::-webkit-color-swatch-wrapper{padding:0}
+.toc-color-row input[type="color"]::-webkit-color-swatch{border:none;border-radius:2px}
+#tcReset{font-size:10px;padding:2px 8px;background:#333;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;margin-left:auto}
+#tcReset:hover{background:#444;color:#fff}
 #preview h1,#preview h2,#preview h3{scroll-margin-top:10px}
 #preview h1,#preview h2,#preview h3{color:#fff;margin:24px 0 12px}
 #preview h1{font-size:26px;border-bottom:1px solid #555;padding-bottom:10px}
@@ -292,6 +299,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <button id="tocToggle" title="关闭目录">✕</button>
   </div>
   <div id="tocList"><div class="toc-empty">暂无标题</div></div>
+  <div id="tocColors">
+    <div class="toc-color-row"><label>背景</label><input type="color" id="tcBg"></div>
+    <div class="toc-color-row"><label>主题</label><input type="color" id="tcAccent"></div>
+    <div class="toc-color-row"><label>文字</label><input type="color" id="tcText"></div>
+    <button id="tcReset">重置默认</button>
+  </div>
 </div>
 
 <script>
@@ -300,6 +313,27 @@ const tree=$('tree'), preview=$('preview'), previewWrap=$('previewWrap'),
   dropZone=$('dropZone'), pathBar=$('pathBar'),
   tocPanel=$('tocPanel'), tocList=$('tocList');
 let dirHandle=null, activeEl=null, headingIds=[], currentFileHandle=null, currentFileName='', currentMDText='', currentFilePath=null;
+
+// ── 主题颜色 ──
+const _TC_DEFAULTS={bg:'#1e1e1e',accent:'#007acc',text:'#e0e0e0'};
+function _tcDim(hex,f){ const n=parseInt(hex.slice(1),16); return '#'+[16,8,0].map(s=>Math.round(((n>>s)&0xff)*f).toString(16).padStart(2,'0')).join(''); }
+function _tcApply(c){
+  const r=document.documentElement.style;
+  r.setProperty('--color-bg',c.bg); r.setProperty('--color-accent',c.accent);
+  r.setProperty('--color-accent-dim',_tcDim(c.accent,0.6)); r.setProperty('--color-accent-pale',_tcDim(c.accent,0.35));
+  r.setProperty('--color-text',c.text);
+}
+function _tcSave(){
+  const c={bg:$('tcBg').value,accent:$('tcAccent').value,text:$('tcText').value};
+  localStorage.setItem('mdv-theme',JSON.stringify(c)); _tcApply(c);
+}
+(function _tcInit(){
+  const s=localStorage.getItem('mdv-theme'); const c=s?JSON.parse(s):_TC_DEFAULTS;
+  $('tcBg').value=c.bg; $('tcAccent').value=c.accent; $('tcText').value=c.text;
+  _tcApply(c);
+  $('tcBg').oninput=$('tcAccent').oninput=$('tcText').oninput=_tcSave;
+  $('tcReset').onclick=()=>{ localStorage.removeItem('mdv-theme'); _tcApply(_TC_DEFAULTS); $('tcBg').value=_TC_DEFAULTS.bg; $('tcAccent').value=_TC_DEFAULTS.accent; $('tcText').value=_TC_DEFAULTS.text; };
+})();
 
 // ── 生成唯一 ID ──
 function slug(text){return 'h-'+text.toLowerCase().replace(/[^\w\u4e00-\u9fff]+/g,'-').replace(/^-|-$/g,'')||'h-'+Math.random().toString(36).slice(2,8)}
