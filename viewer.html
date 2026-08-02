@@ -40,16 +40,16 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 .tree-empty{padding:40px 20px;text-align:center;color:#999;font-size:14px;line-height:1.8}
 .tree-empty u{cursor:pointer;color:#5aafff}
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-.toolbar{padding:6px 12px;background:#323233;border-bottom:1px solid #444;display:flex;gap:8px;align-items:center;min-height:32px;flex-shrink:0}
+.toolbar{padding:6px 12px;background:var(--color-bg-secondary);border-bottom:1px solid #444;display:flex;gap:8px;align-items:center;min-height:32px;flex-shrink:0}
 .toolbar span{font-size:13px;color:#aaa}
 #dropZone{flex:1;display:flex;align-items:center;justify-content:center;color:#999;font-size:16px;border:2px dashed #555;margin:20px;border-radius:8px;transition:all .2s;text-align:center;line-height:1.8}
 #dropZone u{cursor:pointer;color:#5aafff}
 #previewWrap{flex:1;overflow:hidden;display:none;position:relative}
-#preview{height:100%;overflow-y:auto;padding:20px 36px 80px;scroll-behavior:smooth;font-size:15px;color:#e8e8e8;line-height:1.8}
-.toc-panel{width:230px;background:#252526;border-left:1px solid #444;display:none;flex-direction:column;flex-shrink:0}
+#preview{height:100%;overflow-y:auto;padding:20px 36px 80px;scroll-behavior:smooth;font-size:15px;color:var(--color-text);line-height:1.8}
+.toc-panel{width:230px;background:var(--color-bg-secondary);border-left:1px solid #444;display:none;flex-direction:column;flex-shrink:0}
 .toc-panel.visible{display:flex}
-.toc-header{padding:8px 10px;border-bottom:1px solid #444;font-size:12px;color:#aaa;text-transform:uppercase;letter-spacing:1px;display:flex;justify-content:space-between;align-items:center}
-.toc-header button{background:none;border:none;color:#aaa;cursor:pointer;font-size:16px;padding:0 4px}
+.toc-header{padding:8px 10px;border-bottom:1px solid #444;font-size:12px;color:var(--color-text-dim);text-transform:uppercase;letter-spacing:1px;display:flex;justify-content:space-between;align-items:center}
+.toc-header button{background:none;border:none;color:var(--color-text-dim);cursor:pointer;font-size:16px;padding:0 4px}
 .toc-header button:hover{color:#fff}
 #tocList{flex:1;overflow-y:auto;padding:6px 0}
 #tocList .toc-item{display:block;padding:5px 12px 5px 16px;cursor:pointer;color:#bbb;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:2px solid transparent;transition:all .1s;font-size:13px}
@@ -70,7 +70,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 .toc-empty{padding:20px;text-align:center;color:#999;font-size:13px}
 #tocColors{border-top:1px solid #444;padding:8px 12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .toc-color-row{display:flex;align-items:center;gap:4px;font-size:11px;color:#999}
-.toc-color-row input[type="color"]{width:28px;height:24px;border:1px solid #555;border-radius:3px;padding:0;cursor:pointer}
+.toc-color-row input[type="color"]{width:32px;height:24px;cursor:pointer;border:1px solid #555;border-radius:3px;padding:1px}
 #tcReset{font-size:10px;padding:2px 8px;background:#333;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;margin-left:auto}
 #tcReset:hover{background:#444;color:#fff}
 #preview h1,#preview h2,#preview h3{scroll-margin-top:10px}
@@ -95,7 +95,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 .block{padding:8px 12px;border-radius:6px;transition:background .1s;cursor:text;position:relative}
 .block:hover{background:#2a2a2a}
 .block-editing{position:relative;background:#2a2a2a;outline:2px solid #007acc;margin:4px 0;padding:0}
-.block-editor{width:100%;min-height:100px;background:#1e1e1e;color:#e0e0e0;border:1px solid #444;padding:12px 16px;font-family:'Consolas','Courier New',monospace;font-size:14px;line-height:1.7;resize:vertical;outline:none;box-sizing:border-box}
+.block-editor{width:100%;min-height:100px;background:var(--color-bg);color:var(--color-text);border:1px solid #444;padding:12px 16px;font-family:'Consolas','Courier New',monospace;font-size:14px;line-height:1.7;resize:vertical;outline:none;box-sizing:border-box}
 .block-done{position:absolute;top:-28px;right:0;padding:3px 10px;background:#0e639c;color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:12px;z-index:10}
 .block-done:hover{background:#007acc}
 .block-tb-toggle{position:absolute;top:-28px;right:80px;padding:3px 8px;background:#3c3c3c;color:#ccc;border:1px solid #555;border-radius:3px;cursor:pointer;font-size:14px;z-index:10}
@@ -103,7 +103,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 /* v4 分屏编辑 */
 .block-edit-split{display:flex;gap:12px;min-height:120px}
 .block-edit-split .block-editor{flex:1;min-width:0}
-.block-edit-preview{flex:1;min-width:0;overflow-y:auto;padding:8px 12px;background:#1e1e1e;border:1px solid #444;border-radius:4px;font-size:14px;line-height:1.6;color:#ddd}
+.block-edit-preview{flex:1;min-width:0;overflow-y:auto;padding:8px 12px;background:var(--color-bg);border:1px solid #444;border-radius:4px;font-size:14px;line-height:1.6;color:var(--color-text)}
 .block-edit-preview h1,.block-edit-preview h2,.block-edit-preview h3{color:#fff;margin:6px 0 3px;font-size:15px}
 .block-edit-preview p{margin:3px 0}
 .block-edit-preview code{background:#3a3a3a;padding:1px 4px;border-radius:2px;color:#f0a060;font-size:12px}
@@ -111,7 +111,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 .block-edit-preview th,.block-edit-preview td{border:1px solid #555;padding:4px 8px;text-align:left}
 .block-edit-preview th{background:#3c3c3c;color:#eee;font-weight:600}
 /* 符号工具栏 */
-#toolbar{width:320px;flex-shrink:0;background:#252526;border-left:1px solid #444;display:none;flex-direction:column;overflow-y:auto}
+#toolbar{width:320px;flex-shrink:0;background:var(--color-bg-secondary);border-left:1px solid #444;display:none;flex-direction:column;overflow-y:auto}
 #toolbar.show{display:flex}
 .tb-header{padding:10px 12px;border-bottom:1px solid #444;font-size:13px;color:#aaa;display:flex;justify-content:space-between;align-items:center}
 .tb-header button{background:none;border:none;color:#999;cursor:pointer;font-size:16px;padding:0 4px}
@@ -122,7 +122,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 .tb-btn .tsym{font-size:20px;min-width:28px;text-align:center}
 .tb-btn .ttpl{font-size:12px;color:#aaa;font-family:monospace}
 .tb-btn:hover .ttpl{color:#ccc}
-.tb-preview{flex:1;overflow-y:auto;padding:12px;background:#1e1e1e;border-top:1px solid #444;font-size:14px;line-height:1.6;color:#ddd;min-height:80px}
+.tb-preview{flex:1;overflow-y:auto;padding:12px;background:var(--color-bg);border-top:1px solid #444;font-size:14px;line-height:1.6;color:var(--color-text);min-height:80px}
 .tb-preview h1,.tb-preview h2,.tb-preview h3{color:#fff;margin:8px 0 4px;font-size:15px}
 .tb-preview p{margin:4px 0}
 .tb-preview code{background:#3a3a3a;padding:1px 4px;border-radius:2px;color:#f0a060;font-size:12px}
@@ -148,7 +148,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 .fe-tpl-btn:hover{background:#505050;border-color:#007acc}
 .fe-tpl-btn .fe-vis{font-size:16px;color:#ccc;margin-top:2px;font-family:'Times New Roman',serif}
 /* 可视化公式块 + Canvas */
-.fe-canvas{min-height:80px;padding:10px;background:#1e1e1e;border:1px solid #555;border-radius:4px;margin-bottom:6px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;font-size:16px;font-family:'Times New Roman',serif;color:#ddd}
+.fe-canvas{min-height:80px;padding:10px;background:var(--color-bg);border:1px solid #555;border-radius:4px;margin-bottom:6px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;font-size:16px;font-family:'Times New Roman',serif;color:var(--color-text)}
 .fe-canvas .hint{color:#555;font-size:13px;width:100%}
 /* v4.1.10: 槽位——默认透明让预览可见，聚焦后显示编辑框 */
 .fe-slot{display:inline-block;position:relative;z-index:1;min-width:32px;padding:4px 8px;border:2px dashed transparent;border-radius:4px;background:transparent;color:transparent;caret-color:#e0e0e0;text-align:center;font-size:16px;font-family:'Times New Roman',serif;vertical-align:middle;outline:none;cursor:text}
@@ -322,6 +322,7 @@ function _tcApply(c){
   r.setProperty('--color-accent',c.accent);
   r.setProperty('--color-accent-dim',_tcDim(c.accent,0.6)); r.setProperty('--color-accent-pale',_tcDim(c.accent,0.35));
   r.setProperty('--color-text',c.text);
+  r.setProperty('--color-text-dim',_tcDim(c.text,0.7));
 }
 function _tcSave(){
   const c={bg:$('tcBg').value,accent:$('tcAccent').value,text:$('tcText').value};
