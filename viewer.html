@@ -14,8 +14,8 @@
   --color-text:#e0e0e0;--color-text-dim:#aaa;
   --font-ui:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 }
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#1e1e1e;color:#e0e0e0;height:100vh;display:flex;overflow:hidden;font-size:15px}
-.sidebar{width:280px;background:#252526;border-right:1px solid #444;display:flex;flex-direction:column;flex-shrink:0;position:relative}
+body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-text);height:100vh;display:flex;overflow:hidden;font-size:15px}
+.sidebar{width:280px;background:var(--color-bg-secondary);border-right:1px solid #444;display:flex;flex-direction:column;flex-shrink:0;position:relative}
 .sidebar.collapsed{width:30px;overflow:hidden;min-width:30px}
 .sidebar.collapsed .sidebar-header button{display:none}
 .sidebar.collapsed #tree{display:none}
@@ -317,7 +317,9 @@ const _TC_DEFAULTS={bg:'#1e1e1e',accent:'#007acc',text:'#e0e0e0'};
 function _tcDim(hex,f){ const n=parseInt(hex.slice(1),16); return '#'+[16,8,0].map(s=>Math.round(((n>>s)&0xff)*f).toString(16).padStart(2,'0')).join(''); }
 function _tcApply(c){
   const r=document.documentElement.style;
-  r.setProperty('--color-bg',c.bg); r.setProperty('--color-accent',c.accent);
+  r.setProperty('--color-bg',c.bg); r.setProperty('--color-bg-secondary',_tcDim(c.bg,1.12));
+  r.setProperty('--color-bg-tertiary',_tcDim(c.bg,1.25));
+  r.setProperty('--color-accent',c.accent);
   r.setProperty('--color-accent-dim',_tcDim(c.accent,0.6)); r.setProperty('--color-accent-pale',_tcDim(c.accent,0.35));
   r.setProperty('--color-text',c.text);
 }
