@@ -1211,7 +1211,26 @@ let _canvasLatex='';
 let _replaceRange=null; // v4.1: 预览加载公式的原文位置 {s,e}
 // v4.1.10: 槽位双面——编辑层(下)+预览层(上,pointer-events穿透)
 // 点击直接穿透预览层到编辑层，浏览器原生聚焦
-function feSlot(ph){return '<span class="fe-slw"><span class="fe-slot" contenteditable="true" tabindex="0" data-ph="'+ph+'" oninput="feUpdate()" onblur="feOnBlur(this)">'+ph+'</span><span class="fe-slr" data-ph="'+ph+'">'+ph+'</span></span>';}
+function feSlot(ph){return '<span class="fe-slw"><span class="fe-slot" contenteditable="true" tabindex="0" data-ph="'+ph+'" oninput="feUpdate();_feCheckLatex(this)" onblur="feOnBlur(this)">'+ph+'</span><span class="fe-slr" data-ph="'+ph+'">'+ph+'</span></span>';}
+// v4.2.0: 键盘直输LaTeX命令自动转可视化块(如输入\frac{1}{2}→分式块)
+function _feCheckLatex(el){
+  if(!el) return;
+  const txt=el.textContent||'';
+  const rx=/\\frac\{[^{}]+\}\{[^{}]+\}|\\sqrt\{[^{}]+\}|\\int(?:\^\{[^{}]+\})?(?:_\{[^{}]+\})?|\\sum(?:\^\{[^{}]+\})?(?:_\{[^{}]+\})?|\\prod(?:\^\{[^{}]+\})?(?:_\{[^{}]+\})?|\\lim(?:_\{[^{}]+\})?/;
+  const m=rx.exec(txt);
+  if(!m) return;
+  const html=_latexToHTML(m[0]);
+  if(!html) return;
+  const before=txt.slice(0,m.index);
+  const after=txt.slice(m.index+m[0].length);
+  el.innerHTML=before+html+after;
+  // 光标定位到新块后面
+  const r=document.createRange();
+  r.selectNodeContents(el); r.collapse(false);
+  const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+  _focusedSlot=el;
+  feUpdate();
+}
 function feOnFocus(el){_focusedSlot=el;}
 // 点击槽位设置_focusedSlot（聚焦由浏览器pointer-events穿透原生处理）
 document.addEventListener('click',function(e){
