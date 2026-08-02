@@ -1234,7 +1234,11 @@ function _feCheckLatex(el){
 function feOnFocus(el){_focusedSlot=el;}
 // 点击槽位设置_focusedSlot（聚焦由浏览器pointer-events穿透原生处理）
 document.addEventListener('click',function(e){
-  var s=e.target.closest('.fe-slot'); if(s){ _focusedSlot=s; return; }
+  var s=e.target.closest('.fe-slot'); if(s){
+    _focusedSlot=s;
+    s.focus();
+    return;
+  }
 });
 function feOnBlur(el){
   if(!el.textContent.trim()) el.textContent='';
