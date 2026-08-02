@@ -1266,7 +1266,8 @@ function _slotLatex(slot){
     const lim=slot.querySelector('.fe-lim'); if(lim) return genBlockLatex(lim);
     const mtx=slot.querySelector('.fe-mtx'); if(mtx) return genBlockLatex(mtx);
   }catch(e){}
-  return slot.textContent.trim()||slot.dataset.ph||'';
+  const t=slot.textContent?slot.textContent.trim():'';
+  return t||slot.dataset.ph||'?';
 }
 function _feTarget(){return document.activeElement?.closest('.fe-slot')||_focusedSlot||$('feCanvas');}
 // v4.1.12: 往目标添加块——若目标是槽位则先清除残留文本,再插入
@@ -1503,17 +1504,18 @@ function genBlockLatex(blk){
     }
     return true;
   });
-  const v=slots.map(s=>_slotLatex(s));
-  if(blk.classList.contains('fe-frac')) return '\\frac{'+v[0]+'}{'+v[1]+'}';
-  if(blk.classList.contains('fe-sqrt')) return '\\sqrt{'+v[0]+'}';
-  if(blk.classList.contains('fe-int')) return '\\int_{'+v[0]+'}^{'+v[1]+'} '+v[2]+' d'+v[3];
-  if(blk.classList.contains('fe-sup')) return '^{'+v[0]+'}';
+  const v=slots.map(s=>_slotLatex(s)||'?');
+  const g=(i,d)=>v[i]||d;
+  if(blk.classList.contains('fe-frac')) return '\frac{'+g(0,'?')+'}{'+g(1,'?')+'}';
+  if(blk.classList.contains('fe-sqrt')) return '\sqrt{'+g(0,'?')+'}';
+  if(blk.classList.contains('fe-int')) return '\int_{'+g(0,'?')+'}^{'+g(1,'?')+'} '+g(2,'?')+' d'+g(3,'x');
+  if(blk.classList.contains('fe-sup')) return '^{'+g(0,'?')+'}';
   if(blk.classList.contains('fe-sum')){
     const sym=blk.querySelector('.fe-sum-sym').textContent;
     const symCmd={'Σ':'sum','Π':'prod'};
-    return '\\'+(symCmd[sym]||sym.toLowerCase())+'_{'+v[1]+'}^{'+v[0]+'} '+v[2];
+    return '\\\\'+(symCmd[sym]||sym.toLowerCase())+'_{'+g(1,'?')+'}^{'+g(0,'?')+'} '+g(2,'?');
   }
-  if(blk.classList.contains('fe-lim')) return '\\lim_{'+v[0]+'} '+v[1];
+  if(blk.classList.contains('fe-lim')) return '\lim_{'+g(0,'?')+'} '+g(1,'?');
   if(blk.classList.contains('fe-mtx')){
     const cols=parseInt(blk.dataset.cols)||2, rows=v.length/cols;
     let m='\\begin{bmatrix}';
