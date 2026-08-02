@@ -335,10 +335,13 @@ function _tcSave(){
 }
 (function _tcInit(){
   const s=localStorage.getItem('mdv-theme'); const c=s?JSON.parse(s):_TC_DEFAULTS;
-  $('tcBg').value=c.bg; $('tcAccent').value=c.accent; $('tcText').value=c.text;
-  _tcApply(c);
-  $('tcBg').oninput=$('tcAccent').oninput=$('tcText').oninput=_tcSave;
-  $('tcReset').onclick=()=>{ localStorage.removeItem('mdv-theme'); _tcApply(_TC_DEFAULTS); $('tcBg').value=_TC_DEFAULTS.bg; $('tcAccent').value=_TC_DEFAULTS.accent; $('tcText').value=_TC_DEFAULTS.text; };
+  _tcApply(c); // CSS变量立即生效
+  // input value延迟到TOC面板显示后(TOC初始display:none会导致color input初始化失败)
+  requestAnimationFrame(()=>{
+    $('tcBg').value=c.bg; $('tcAccent').value=c.accent; $('tcText').value=c.text;
+    $('tcBg').oninput=$('tcAccent').oninput=$('tcText').oninput=_tcSave;
+    $('tcReset').onclick=()=>{ localStorage.removeItem('mdv-theme'); _tcApply(_TC_DEFAULTS); $('tcBg').value=_TC_DEFAULTS.bg; $('tcAccent').value=_TC_DEFAULTS.accent; $('tcText').value=_TC_DEFAULTS.text; };
+  });
 })();
 
 // ── 生成唯一 ID ──
