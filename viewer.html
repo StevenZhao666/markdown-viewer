@@ -245,7 +245,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.3.0</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.4.0</span></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
 </div>
@@ -687,6 +687,7 @@ function _editBlock(idx){
   _editingIdx=idx;
   ta.focus();
   _autoSizeTA(ta);
+  _bindScrollSync(ta, pv);
   preview.scrollTop=st; // 恢复滚动位置
   // 工具栏不自动弹出，由📐按钮切换
   // 完成按钮
@@ -714,7 +715,7 @@ function _editBlock(idx){
 
 function _autoSizeTA(ta){
   ta.style.height='auto';
-  ta.style.height=Math.max(80,ta.scrollHeight)+'px';
+  ta.style.height=Math.min(480,Math.max(80,ta.scrollHeight))+'px';
   // 同步分屏预览高度
   const pv=document.querySelector('.block-edit-preview');
   if(pv) pv.style.maxHeight=ta.style.height;
@@ -753,6 +754,30 @@ function _updateFullText(){
   });
   currentMDText=full;
   preview.dataset.mdText=full;
+}
+
+// ── 滚动追踪: 编辑框↔预览按比例双向同步 ──
+function _bindScrollSync(ta, pv){
+  if(!ta||!pv) return;
+  let lock=false;
+  const range=el=>Math.max(1,el.scrollHeight-el.clientHeight);
+  const sync=(from,to)=>{
+    const r=from.scrollTop/range(from);
+    to.scrollTop=r*range(to);
+  };
+  ta.addEventListener('scroll',()=>{
+    if(lock||pv.style.display==='none') return;
+    lock=true; sync(ta,pv); lock=false;
+  },{passive:true});
+  pv.addEventListener('scroll',()=>{
+    if(lock) return;
+    lock=true; sync(pv,ta); lock=false;
+  },{passive:true});
+  // 显示预览时同步一次当前位置
+  const show=pv.style.display;
+  pv.style.display='';
+  sync(ta,pv);
+  pv.style.display=show;
 }
 
 // ── 实时预览 ──
@@ -863,6 +888,14 @@ function _togglePreview(){
   const pv=document.querySelector('.block-edit-preview');
   if(!pv) return;
   pv.style.display=pv.style.display==='none'?'':'none';
+  // 显示时同步滚动到编辑框当前位置
+  if(pv.style.display!=='none'){
+    const ta=document.querySelector('.block-editor');
+    if(ta){
+      const r=ta.scrollTop/Math.max(1,ta.scrollHeight-ta.clientHeight);
+      pv.scrollTop=r*Math.max(1,pv.scrollHeight-pv.clientHeight);
+    }
+  }
 }
 function _stopTb(e){
   // 重新聚焦编辑框
