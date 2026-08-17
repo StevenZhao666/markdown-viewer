@@ -57,6 +57,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 .tab .tab-dirty{color:var(--color-accent);font-size:10px}
 .tab .tab-close{padding:0 3px;border-radius:3px;font-size:11px;color:var(--color-text-faint);line-height:1}
 .tab .tab-close:hover{background:var(--color-accent);color:#fff}
+.tab-rename{width:110px;background:var(--color-bg);color:var(--color-text);border:1px solid var(--color-accent);border-radius:3px;padding:1px 6px;font-size:12px;outline:none}
 .tab-new{display:inline-flex;align-items:center;justify-content:center;width:30px;flex-shrink:0;background:none;border:1px dashed var(--color-border);border-bottom:none;border-radius:6px 6px 0 0;color:var(--color-text-dim);font-size:16px;cursor:pointer}
 .tab-new:hover{background:var(--color-btn-hover);color:var(--color-accent)}
 .toc-panel{width:230px;background:var(--color-bg-secondary);border-left:1px solid #444;display:none;flex-direction:column;flex-shrink:0}
@@ -259,7 +260,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.5.0</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.6.0</span></div>
   <div id="tabBar"></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
@@ -854,6 +855,11 @@ function renderTabBar(){
       if(e.target.classList.contains('tab-close')){closeTab(i);return;}
       switchTab(i);
     };
+    el.ondblclick=(e)=>{
+      e.stopPropagation();
+      if(e.target.classList.contains('tab-close')) return;
+      renameTab(i);
+    };
     el.addEventListener('mousedown',e=>e.preventDefault()); // 防拖选文字
     tabBar.appendChild(el);
   });
@@ -866,6 +872,68 @@ function renderTabBar(){
   // 无文件时显示 dropZone，有文件时显示预览
   if(tabs.length===0){previewWrap.style.display='none';dropZone.style.display='';}
   else{previewWrap.style.display='block';dropZone.style.display='none';}
+}
+// v4.6.0 重命名标签：双击标签进入编辑，Enter/失焦保存
+function renameTab(i){
+  const t=tabs[i]; if(!t) return;
+  const el=tabBar.children[i]; if(!el) return;
+  const nameEl=el.querySelector('.tab-name');
+  const oldName=t.name;
+  // 替换为输入框
+  const input=document.createElement('input');
+  input.type='text';
+  input.className='tab-rename';
+  input.value=oldName.replace(/\.md$/,'');
+  input.title='重命名，Enter 确认，Esc 取消';
+  nameEl.replaceWith(input);
+  input.focus();
+  input.select();
+  let done=false;
+  const finish=async(save)=>{
+    if(done) return; done=true;
+    if(save){
+      let newName=input.value.trim();
+      if(!newName){renderTabBar();return;}
+      if(!/\.md$/i.test(newName)) newName+='.md'; // 自动补 .md 防文件树消失
+      const okR=await _doRename(t,oldName,newName);
+      if(okR){ t.name=newName; if(t.filePath) t.filePath=okR.newPath||t.filePath; }
+    }
+    renderTabBar();
+    if(save&&_editingIdx!==null){} // no-op
+  };
+  input.onkeydown=async e=>{
+    if(e.key==='Enter'){e.preventDefault();await finish(true);}
+    if(e.key==='Escape'){e.preventDefault();finish(false);}
+  };
+  input.onblur=()=>{finish(true);};
+  // 点击别处不立即失焦（给 blur 处理时间）
+  input.addEventListener('mousedown',e=>e.stopPropagation());
+}
+// 磁盘重命名：fileHandle.move 优先，filePath 走 /api/rename，未保存文件仅改标签
+async function _doRename(t,oldName,newName){
+  try{
+    if(t.fileHandle&&typeof t.fileHandle.move==='function'){
+      const newHandle=await t.fileHandle.move(newName);
+      t.fileHandle=newHandle;
+      return {newPath:null};
+    }
+    if(t.filePath){
+      const dir=t.filePath.substring(0,t.filePath.lastIndexOf('\\')+1);
+      const resp=await fetch('/api/rename',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({oldPath:t.filePath, newPath:dir+newName})
+      });
+      const d=await resp.json();
+      if(d.error) throw new Error(d.error);
+      return {newPath:d.newPath};
+    }
+    // 未保存新文件：仅改标签名（保存时用新名）
+    return {newPath:null};
+  }catch(e){
+    alert('重命名失败: '+e.message);
+    return null;
+  }
 }
 function switchTab(i){
   if(i===activeTab) return;

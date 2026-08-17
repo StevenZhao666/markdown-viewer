@@ -71,6 +71,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self._json({'ok': True, 'path': path})
             except Exception as e:
                 self._json({'error': str(e)}, 500)
+        elif self.path == '/api/rename':
+            length = int(self.headers.get('Content-Length', 0))
+            body = json.loads(self.rfile.read(length))
+            old = body.get('oldPath', '')
+            new = body.get('newPath', '')
+            if not old or not new:
+                return self._json({'error': 'missing path'}, 400)
+            try:
+                os.rename(old, new)
+                self._json({'ok': True, 'oldPath': old, 'newPath': new})
+            except Exception as e:
+                self._json({'error': str(e)}, 500)
         else:
             self._json({'error': 'not found'}, 404)
 
