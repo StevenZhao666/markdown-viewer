@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Markdown Viewer v3</title>
+<title>Markdown Viewer v4</title>
 <link rel="stylesheet" href="lib/katex/katex.min.css" onerror="this.onerror=null;this.href='https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css'">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -112,7 +112,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 #preview blockquote{border-left:3px solid var(--color-border);padding-left:14px;color:var(--color-text-dim);margin:14px 0}
 #preview table{border-collapse:collapse;margin:14px 0;width:100%}
 #preview th,#preview td{border:1px solid #555;padding:10px 14px;text-align:left}
-#preview th{background:var(--color-bg-code);color:#fff}
+#preview th{background:var(--color-bg-code);color:var(--color-text)}
 #preview img{max-width:100%}
 #preview hr{border:none;border-top:1px solid #555;margin:24px 0}
 /* 块编辑 */
@@ -129,8 +129,9 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 .block-edit-split{display:flex;gap:12px;min-height:120px}
 .block-edit-split .block-editor{flex:1;min-width:0}
 .block-edit-preview{flex:1;min-width:0;overflow-y:auto;padding:8px 12px;background:var(--color-bg);border:1px solid #444;border-radius:4px;font-size:14px;line-height:1.6;color:var(--color-text)}
-.block-edit-preview h1,.block-edit-preview h2,.block-edit-preview h3{color:#fff;margin:6px 0 3px;font-size:15px}
+.block-edit-preview h1,.block-edit-preview h2,.block-edit-preview h3{color:var(--color-text);margin:6px 0 3px;font-size:15px}
 .block-edit-preview p{margin:3px 0}
+.md-space{height:0.85em}
 .block-edit-preview code{background:var(--color-bg-code);padding:1px 4px;border-radius:2px;color:var(--color-code);font-size:12px}
 .block-edit-preview table{border-collapse:collapse;margin:8px 0;width:100%;font-size:13px}
 .block-edit-preview th,.block-edit-preview td{border:1px solid #555;padding:4px 8px;text-align:left}
@@ -148,7 +149,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 .tb-btn .ttpl{font-size:12px;color:var(--color-text-dim);font-family:monospace}
 .tb-btn:hover .ttpl{color:var(--color-text-dim)}
 .tb-preview{flex:1;overflow-y:auto;padding:12px;background:var(--color-bg);border-top:1px solid #444;font-size:14px;line-height:1.6;color:var(--color-text);min-height:80px}
-.tb-preview h1,.tb-preview h2,.tb-preview h3{color:#fff;margin:8px 0 4px;font-size:15px}
+.tb-preview h1,.tb-preview h2,.tb-preview h3{color:var(--color-text);margin:8px 0 4px;font-size:15px}
 .tb-preview p{margin:4px 0}
 .tb-preview code{background:var(--color-bg-code);padding:1px 4px;border-radius:2px;color:var(--color-code);font-size:12px}
 .tb-preview table{border-collapse:collapse;margin:10px 0;width:100%;font-size:13px}
@@ -220,6 +221,10 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 .fe-frac{display:inline-grid;grid-template-areas:'num''line''den';grid-template-columns:1fr;justify-items:center;vertical-align:middle;margin:0 4px;row-gap:2px}
 .fe-frac-num{grid-area:num}.fe-frac-den{grid-area:den}
 .fe-frac-line{grid-area:line;width:100%;min-width:40px;height:2px;background:#aaa}
+.fe-binom{display:inline-flex;align-items:center;vertical-align:middle;margin:0 4px;line-height:1.15}
+.fe-binom-paren{font-size:24px;color:#ddd;font-family:'Times New Roman',serif;line-height:1}
+.fe-binom-stack{display:inline-flex;flex-direction:column;justify-content:center;text-align:center;padding:0 2px}
+.fe-binom-top,.fe-binom-bot{display:block;min-width:24px}
 .fe-sqrt{display:inline-flex;align-items:center;vertical-align:middle;margin:0 4px}
 .fe-sqrt-sign{font-size:20px;color:#ddd;margin-right:1px;font-family:'Times New Roman',serif}
 .fe-sqrt-overline{border-top:2px solid #aaa;padding-top:1px;margin-left:-1px}
@@ -260,7 +265,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.6.0</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.7.4</span></div>
   <div id="tabBar"></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
@@ -307,6 +312,21 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
       <button class="fe-tpl-btn" onclick="feAddLim()">极限<div class="fe-vis">lim</div></button>
       <button class="fe-tpl-btn" onclick="feAddSum()">求和<div class="fe-vis">Σx</div></button>
       <button class="fe-tpl-btn" onclick="feAddProd()">累乘<div class="fe-vis">Πx</div></button>
+  </div>
+  <div class="fe-label" style="margin-top:8px">🎲 概率统计</div>
+  <div class="fe-tpl-grid">
+      <button class="fe-tpl-btn" onclick="feAddBinom()">组合数<div class="fe-vis">(n/r)</div></button>
+      <button class="fe-tpl-btn" onclick="_insertSymbol('\\mathrm{P}(n,r)')">排列<div class="fe-vis">P(n,r)</div></button>
+      <button class="fe-tpl-btn" onclick="_insertSymbol('P(A \\mid B)')">条件概率<div class="fe-vis">P(A|B)</div></button>
+      <button class="fe-tpl-btn" onclick="_insertSymbol('\\mathbb{E}[X]')">期望<div class="fe-vis">E[X]</div></button>
+      <button class="fe-tpl-btn" onclick="_insertSymbol('\\mathrm{Var}(X)')">方差<div class="fe-vis">Var(X)</div></button>
+      <button class="fe-tpl-btn" onclick="_insertSymbol('X \\sim N(\\mu, \\sigma^2)')">正态<div class="fe-vis">N(μ,σ²)</div></button>
+      <button class="fe-tpl-btn" onclick="_insertSymbol('X \\sim \\mathrm{Bin}(n, p)')">二项<div class="fe-vis">Bin(n,p)</div></button>
+      <button class="fe-tpl-btn" onclick="_insertSymbol('X \\sim \\mathrm{Pois}(\\lambda)')">泊松<div class="fe-vis">Pois(λ)</div></button>
+      <button class="fe-tpl-btn" onclick="_insertSymbol('A \\cap B')">交<div class="fe-vis">A∩B</div></button>
+      <button class="fe-tpl-btn" onclick="_insertSymbol('A \\cup B')">并<div class="fe-vis">A∪B</div></button>
+      <button class="fe-tpl-btn" onclick="_insertSymbol('\\emptyset')">空集<div class="fe-vis">∅</div></button>
+      <button class="fe-tpl-btn" onclick="_insertSymbol('X \\perp Y')">独立<div class="fe-vis">X⊥Y</div></button>
   </div>
   <div class="fe-label" style="margin-top:8px">📏 线性代数</div>
   <div class="fe-tpl-grid">
@@ -389,24 +409,32 @@ const curText=()=>cur()?cur().mdText:'';
 
 // ── 主题颜色 ──
 const _TC_DEFAULTS={bg:'#1e1e1e',accent:'#007acc',text:'#e0e0e0',font:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"};
-function _tcDim(hex,f){ const n=parseInt(hex.slice(1),16); return '#'+[16,8,0].map(s=>Math.round(((n>>s)&0xff)*f).toString(16).padStart(2,'0')).join(''); }
+function _tcDim(hex,f){ const n=parseInt(hex.slice(1),16); return '#'+[16,8,0].map(s=>Math.min(255,Math.round(((n>>s)&0xff)*f)).toString(16).padStart(2,'0')).join(''); }
+// 亮度（0-1）：决定派生色该往哪个方向调
+function _tcLum(hex){ const n=parseInt(hex.slice(1),16); return (0.299*((n>>16)&0xff)+0.587*((n>>8)&0xff)+0.114*(n&0xff))/255; }
+// 派生系数：亮背景取倒数（往暗里调），暗背景原样（往亮里调）
+function _tcStep(bg,f){ return _tcLum(bg)>0.5 ? 1/f : f; }
 function _tcApply(c){
   const r=document.documentElement.style;
-  r.setProperty('--color-bg',c.bg); r.setProperty('--color-bg-secondary',_tcDim(c.bg,1.12));
-  r.setProperty('--color-bg-tertiary',_tcDim(c.bg,1.25));
+  const sb=_tcStep(c.bg,1.12), st=_tcStep(c.bg,1.25), sd=_tcStep(c.bg,1.3);
+  const sbtn=_tcStep(c.bg,1.2), sbtnh=_tcStep(c.bg,1.4), sblk=_tcStep(c.bg,1.08);
+  const scode=_tcStep(c.bg,1.2), stdim=_tcStep(c.bg,0.7), stfaint=_tcStep(c.bg,0.55), sc=_tcStep(c.bg,1.6);
+  r.setProperty('--color-bg',c.bg);
+  r.setProperty('--color-bg-secondary',_tcDim(c.bg,sb));
+  r.setProperty('--color-bg-tertiary',_tcDim(c.bg,st));
   r.setProperty('--color-accent',c.accent);
   r.setProperty('--color-accent-dim',_tcDim(c.accent,0.6)); r.setProperty('--color-accent-pale',_tcDim(c.accent,0.35));
   r.setProperty('--color-text',c.text);
-  r.setProperty('--color-text-dim',_tcDim(c.text,0.7));
+  r.setProperty('--color-text-dim',_tcDim(c.text,stdim));
   r.setProperty('--font-ui',c.font||'-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif');
-  r.setProperty('--color-border',_tcDim(c.bg,1.3));
+  r.setProperty('--color-border',_tcDim(c.bg,sd));
   r.setProperty('--color-border-accent',c.accent);
-  r.setProperty('--color-btn',_tcDim(c.bg,1.2));
-  r.setProperty('--color-btn-hover',_tcDim(c.bg,1.4));
-  r.setProperty('--color-block-hover',_tcDim(c.bg,1.08));
-  r.setProperty('--color-bg-code',_tcDim(c.bg,1.2));
-  r.setProperty('--color-text-faint',_tcDim(c.text,0.55));
-  r.setProperty('--color-code',_tcDim(c.accent,1.6));
+  r.setProperty('--color-btn',_tcDim(c.bg,sbtn));
+  r.setProperty('--color-btn-hover',_tcDim(c.bg,sbtnh));
+  r.setProperty('--color-block-hover',_tcDim(c.bg,sblk));
+  r.setProperty('--color-bg-code',_tcDim(c.bg,scode));
+  r.setProperty('--color-text-faint',_tcDim(c.text,stfaint));
+  r.setProperty('--color-code',_tcDim(c.accent,sc));
   // 调试: 色盘下方显示当前值
   if($('tcDebug')) $('tcDebug').textContent='bg='+c.bg+' accent='+c.accent+' text='+c.text;
 }
@@ -437,15 +465,22 @@ function _tcHex(){
 })();
 
 // ── 生成唯一 ID ──
-function slug(text){return 'h-'+text.toLowerCase().replace(/[^\w\u4e00-\u9fff]+/g,'-').replace(/^-|-$/g,'')||'h-'+Math.random().toString(36).slice(2,8)}
+function slug(text){text=text.replace(/\x00[A-Z]{2}\d+\x00/g,'');return 'h-'+text.toLowerCase().replace(/[^\w\u4e00-\u9fff]+/g,'-').replace(/^-|-$/g,'')||'h-'+Math.random().toString(36).slice(2,8)}
 
 // ── 生成目录 HTML ──
+// v4.7.2: 目录项里的 $...$ 用 KaTeX 渲染后再放进去（否则目录里显示 "$sup$ 的四个等价说法" 这种源码）
+function _tocMath(s){
+  if(typeof katex==='undefined'||s.indexOf('$')<0) return s;
+  return s.replace(/(?<!\\)\$([^$]+?)\$/g,(mm,tex)=>{
+    try{return katex.renderToString(tex,{throwOnError:false});}catch(e){return mm;}
+  });
+}
 function buildTOC(html){
   const rx=/<(h[1-6])[^>]*id="([^"]*)"[^>]*>(.+?)<\/h[1-6]>/gi;
   const items=[];
   let m;
   while((m=rx.exec(html))!==null){
-    items.push({tag:m[1],id:m[2],text:m[3].replace(/<[^>]+>/g,'')});
+    items.push({tag:m[1],id:m[2],html:_tocMath(m[3]),text:m[3].replace(/<[^>]+>/g,'').replace(/\$/g,'')});
   }
   tocList.innerHTML='';
   if(!items.length){
@@ -462,7 +497,7 @@ function buildTOC(html){
     const a=document.createElement('a');
     a.className='toc-item';
     a.classList.add('lvl'+item.tag[1]);
-    a.textContent=item.text;
+    a.innerHTML=item.html;
     a.title=item.text;
     a.href='#'+item.id;
     a.onclick=e=>{
@@ -518,7 +553,30 @@ preview.addEventListener('scroll',()=>{
 // ── Markdown 渲染 ──
 function renderMD(text){
   let h=text;
-  h=h.replace(/((?:^\|.+\|\n)+)/gm,function(block){
+  // 先提取代码块，用占位符保护（避免被表格/标题/<p> 包裹正则误伤内部 # 注释）
+  const _codeBlocks=[];
+  h=h.replace(/```(\w*)\n([\s\S]*?)```/g,(_,lang,code)=>{
+    _codeBlocks.push(code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'));
+    return `\x00CB${_codeBlocks.length-1}\x00`;
+  });
+  // v4.7.1: 正文与公式里的裸 < 必须转义成 &lt;。浏览器会把 <x（< 紧跟字母）当成标签开头，
+  // 一路吞掉其后直到下一个 > 的所有内容——公式缺半截、整段文字凭空消失。
+  // 用户显式写的 HTML 标签先换成占位符保护，最后还原。
+  const _htmlTags=[];
+  h=h.replace(/<\/?(?:details|summary|br|hr|img|a|div|span|p|strong|em|b|i|u|s|del|ins|mark|kbd|sub|sup|code|pre|blockquote|table|thead|tbody|tr|th|td|ul|ol|li|h1|h2|h3|h4|h5|h6|figure|figcaption|center|small|video|audio|source|svg|path|input|label)(?=[\s\/>])[^>]*>/gi,
+    m=>{_htmlTags.push(m);return `\x00HT${_htmlTags.length-1}\x00`;});
+  h=h.replace(/</g,'&lt;');
+  // v4.7.2: $$...$$ 与行内 $...$ 都在**表格处理之前**提取成占位符。
+  // 两个理由：① 表格里的公式会被单元格分隔符 | 切开（如 $|x_n-x|<\varepsilon$ 里的绝对值竖线）；
+  // ② 公式里的 * [ ] ` _ 会被后续 markdown 正则误伤（$x^*$ 曾被强调正则拆成一对斜体）。
+  const _mathBlocks=[];
+  h=h.replace(/\$\$([\s\S]*?)\$\$/g,(m)=>{_mathBlocks.push(m);return `\x00MB${_mathBlocks.length-1}\x00`;});
+  const _inlineMath=[];
+  h=h.replace(/(?<!\\)\$([^$\n]+?)\$/g,(m)=>{_inlineMath.push(m);return `\x00IM${_inlineMath.length-1}\x00`;});
+  // v4.7.3: \$ 是「字面美元」。KaTeX auto-render 找起始 $ 时不看反斜杠，会把 \$5 与同行的
+  // 下一个 $ 配成一对，所以这里先把它拆进独立元素，破坏这对配对。
+  h=h.replace(/\\\$/g,'<span class="md-lit-dollar">$</span>');
+  h=h.replace(/((?:^\|.+\|(?:\n|$))+)/gm,function(block){
     const lines=block.trim().split('\n');
     if(lines.length<2) return block;
     const parseRow=r=>r.split('|').slice(1,-1).map(c=>c.trim());
@@ -538,13 +596,8 @@ function renderMD(text){
     html+='</table>';
     return html;
   });
-  h=h.replace(/```(\w*)\n([\s\S]*?)```/g,(_,lang,code)=>{
-    code=code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    return `<pre><code>${code}</code></pre>`;
-  });
-  // 先提取 $$...$$ 块，用占位符保护，避免被后续 <p> 包裹拆开
-  const _mathBlocks=[];
-  h=h.replace(/\$\$([\s\S]*?)\$\$/g,(m)=>{_mathBlocks.push(m);return `\x00MB${_mathBlocks.length-1}\x00`;});
+  // v4.7.0: 空行 → 可见空行（敲 N 个空行渲染 N 个空行；代码块/公式块已被占位符保护不受影响）
+  h=h.replace(/^[ \t]*\n/gm,'<div class="md-space"></div>\n');
   h=h.replace(/`([^`]+)`/g,'<code>$1</code>');
   h=h.replace(/^#### (.+)$/gm,(_,t)=>`<h4 id="${slug(t)}">${t}</h4>`);
   h=h.replace(/^### (.+)$/gm,(_,t)=>`<h3 id="${slug(t)}">${t}</h3>`);
@@ -559,10 +612,21 @@ function renderMD(text){
   h=h.replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>');
   h=h.replace(/^- (.+)$/gm,'<li>$1</li>');
   h=h.replace(/(<li>.*<\/li>\n?)+/g,'<ul>$&</ul>');
-  h=h.replace(/^(?!<[a-z]|$)(.+)$/gm,'<p>$1</p>');
+  // v4.7.1: 行首是 HTML 标签占位符（\x00HT）时同样不包 <p>，保持 <details> 等块级标签的原行为
+  // v4.7.3: 行首是公式块占位符（\x00MB）时不包 <p>——math-block 是块级元素，包了浏览器会多出空段落
+  h=h.replace(/^(?!<[a-z]|\x00HT|\x00MB|$)(.+)$/gm,'<p>$1</p>');
   h=h.replace(/<p>\s*<\/p>/g,'');
   // 还原 $$...$$ 公式块（占位符不会被 <p> 包裹破坏）
   h=h.replace(/\x00MB(\d+)\x00/g,(_,i)=>`<div class="math-block">${_mathBlocks[i]}</div>`);
+  // v4.7.2: 还原行内公式（**不要**剥外层 <p>——单行公式原本就被包在 <p> 里，剥了会丢段落间距）
+  h=h.replace(/\x00IM(\d+)\x00/g,(_,i)=>_inlineMath[i]);
+  // 还原代码块（占位符在标题/<p> 正则之后还原，内部的 # 注释不会被误当标题）
+  // 占位符可能被 <p> 包裹正则包了一层（<p>\x00CB0\x00</p>），还原时连外层 <p> 一起剥掉
+  h=h.replace(/<p>\x00CB(\d+)\x00<\/p>/g,(_,i)=>`<pre><code>${_codeBlocks[i]}</code></pre>`);
+  h=h.replace(/\x00CB(\d+)\x00/g,(_,i)=>`<pre><code>${_codeBlocks[i]}</code></pre>`);
+  // v4.7.1: 还原用户显式写的 HTML 标签（占位符可能被 <p> 包裹正则包了一层，连外层一起剥）
+  h=h.replace(/<p>\x00HT(\d+)\x00<\/p>/g,(_,i)=>_htmlTags[i]);
+  h=h.replace(/\x00HT(\d+)\x00/g,(_,i)=>_htmlTags[i]);
   return h;
 }
 
@@ -589,7 +653,8 @@ function _parseBlocks(text){
     else cur.push(l);
   }
   flush();
-  const out=blocks.map(b=>b.replace(/\n{3,}/g,'\n\n')).filter(b=>b.trim());
+  const out=blocks.filter(b=>b.trim());
+  // v4.7.0: 去掉 \n{3,} 压缩——用户敲的空行在保存/重载时不应丢失（渲染层用 md-space 显示）
   // v4.5.0 空文件可编辑：无块时塞一个占位空块
   if(out.length===0) out.push('');
   return out;
@@ -1377,7 +1442,7 @@ function _checkMathDelimiters(text){
     const line=lines[i];
     if(!line.includes('$')) continue;
     const dds=line.match(/\$\$/g);
-    const ds=line.match(/(?<!\$)\$(?!\$)/g);
+    const ds=line.match(/(?<![\\$])\$(?!\$)/g);
     const ddCnt=dds?dds.length*2:0;
     const dCnt=ds?ds.length:0;
     if((ddCnt+dCnt)%2!==0) warn.push((i+1)+': '+line.trim().substring(0,40));
@@ -1539,13 +1604,18 @@ function feParse(latex){
       arr.push(...kids); scripts(arr); return;
     }
     if(ch==='\\'){
-      const m=/^\\(frac|sqrt|int|sum|prod|lim)\*?/.exec(s.slice(i));
+      const m=/^\\(frac|sqrt|int|sum|prod|lim|binom)\*?/.exec(s.slice(i));
       if(m){
         i+=m[0].length; skip();
         const cmd=m[1];
         if(cmd==='frac'){
           const n=braced(),d=braced();
           arr.push({type:'frac',num:n?group(n):[{type:'placeholder'}],den:d?group(d):[{type:'placeholder'}]});
+          scripts(arr); return;
+        }
+        if(cmd==='binom'){
+          const t=braced(),b=braced();
+          arr.push({type:'binom',top:t?group(t):[{type:'placeholder'}],bottom:b?group(b):[{type:'placeholder'}]});
           scripts(arr); return;
         }
         if(cmd==='sqrt'){
@@ -1598,6 +1668,7 @@ function feTreeToLatex(nodes){
       case 'text': return n.value||'';
       case 'placeholder': return '?';
       case 'frac': return '\\frac{'+(feTreeToLatex(n.num||[])||'?')+'}{'+(feTreeToLatex(n.den||[])||'?')+'}';
+      case 'binom': return '\\binom{'+(feTreeToLatex(n.top||[])||'?')+'}{'+(feTreeToLatex(n.bottom||[])||'?')+'}';
       case 'sqrt': return '\\sqrt{'+(feTreeToLatex(n.body||[])||'?')+'}';
       case 'subsup':
         return feTreeToLatex(n.base||[])+(n.sup&&n.sup.length?'^{'+feTreeToLatex(n.sup)+'}':'')+(n.sub&&n.sub.length?'_{'+feTreeToLatex(n.sub)+'}':'');
@@ -1623,6 +1694,8 @@ function feNodeHTML(node,path){
     case 'placeholder': return '<span class="fe-node fe-ph" data-path="'+p+'" '+click+' title="点击输入"></span>';
     case 'frac':
       return '<span class="fe-node fe-frac" data-path="'+p+'" '+click+'><span class="fe-frac-num">'+(node.num||[]).map((c,i)=>feNodeHTML(c,path.concat('num',i))).join('')+'</span><div class="fe-frac-line"></div><span class="fe-frac-den">'+(node.den||[]).map((c,i)=>feNodeHTML(c,path.concat('den',i))).join('')+'</span></span>';
+    case 'binom':
+      return '<span class="fe-node fe-binom" data-path="'+p+'" '+click+'><span class="fe-binom-paren">(</span><span class="fe-binom-stack"><span class="fe-binom-top">'+(node.top||[]).map((c,i)=>feNodeHTML(c,path.concat('top',i))).join('')+'</span><span class="fe-binom-bot">'+(node.bottom||[]).map((c,i)=>feNodeHTML(c,path.concat('bottom',i))).join('')+'</span></span><span class="fe-binom-paren">)</span></span>';
     case 'sqrt':
       return '<span class="fe-node fe-sqrt" data-path="'+p+'" '+click+'><span class="fe-sqrt-sign">√</span><span class="fe-sqrt-overline">'+(node.body||[]).map((c,i)=>feNodeHTML(c,path.concat('body',i))).join('')+'</span></span>';
     case 'subsup':
@@ -1711,6 +1784,7 @@ function feAddSup(){ _fePush({type:'subsup',base:[{type:'placeholder'}],sup:[{ty
 function feAddSum(){ _fePush({type:'sum',sym:'Σ',from:[{type:'placeholder'}],to:[{type:'placeholder'}],body:[{type:'placeholder'}]}); }
 function feAddProd(){ _fePush({type:'sum',sym:'Π',from:[{type:'placeholder'}],to:[{type:'placeholder'}],body:[{type:'placeholder'}]}); }
 function feAddLim(){ _fePush({type:'lim',from:[{type:'placeholder'}],body:[{type:'placeholder'}]}); }
+function feAddBinom(){ _fePush({type:'binom',top:[{type:'placeholder'}],bottom:[{type:'placeholder'}]}); }
 // ── 矩阵 ──
 function feAddMtx(){
   const pk=$('tbGridPicker'); const cells=$('tbGridCells'); const label=$('tbGridLabel');
