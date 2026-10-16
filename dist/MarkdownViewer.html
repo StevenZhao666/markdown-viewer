@@ -18,6 +18,8 @@
 body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-text);height:100vh;display:flex;overflow:hidden;font-size:15px}
 .sidebar{width:280px;background:var(--color-bg-secondary);border-right:1px solid #444;display:flex;flex-direction:column;flex-shrink:0;position:relative}
 .sidebar.collapsed{width:30px;overflow:hidden;min-width:30px}
+/* v4.8.5: 折叠时把展开按钮收回栏内——原来 right:-14px 的部分被 overflow:hidden 裁掉，鼠标点不到，"折叠后就无法展开" */
+.sidebar.collapsed .sidebar-toggle{right:8px}
 .sidebar.collapsed .sidebar-header button{display:none}
 .sidebar.collapsed #tree{display:none}
 .sidebar-toggle{position:absolute;right:-14px;top:4px;width:14px;height:14px;background:var(--color-border);border:none;border-radius:2px;cursor:pointer;color:var(--color-text-dim);font-size:10px;line-height:14px;text-align:center;z-index:10}
@@ -269,7 +271,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.8.4</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.8.5</span></div>
   <div id="tabBar"></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
