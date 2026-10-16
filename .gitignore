@@ -3,4 +3,4 @@ backups/
 viewer.html.bak-*
 .hermes/
 _build_a4_pdf.py
-teacher-package/
+portable-package/

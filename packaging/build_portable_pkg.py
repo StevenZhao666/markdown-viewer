@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""生成给老师的 MarkdownViewer 包（补充文件）：
+"""生成 MarkdownViewer 便携版分发包（免安装文件夹版，通用命名，不面向特定人群）：
 - icon.ico（纯 Python 手写，32+16，蓝底白箭头）
 - OpenMarkdown.bat / OpenMarkdown.ps1（相对路径 + 自带 Python 优先）
 - 一键设为默认.bat / _setup.ps1（注册 + 直接生效逻辑 + 兜底引导）
@@ -7,7 +7,7 @@
 """
 import os, struct
 
-PKG = r'D:\MarkdownViewer\teacher-package\MarkdownViewer'
+PKG = r'D:\MarkdownViewer\portable-package\MarkdownViewer'
 
 # ─────────────────────── 1) icon.ico ───────────────────────
 def draw(size):
