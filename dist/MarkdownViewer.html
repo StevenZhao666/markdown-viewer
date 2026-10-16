@@ -265,7 +265,6 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 <div class="sidebar collapsed" id="sidebar">
   <div class="sidebar-header">
     <button class="primary" id="openFolderBtn" title="选择文件夹">打开文件夹</button>
-    <button id="refreshBtn" title="刷新">↻</button>
     <button class="sidebar-toggle" id="sideToggle" title="收起/展开侧栏">▶</button>
   </div>
   <div id="tree">
@@ -274,7 +273,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.8.6</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.8.7</span></div>
   <div id="tabBar"></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
@@ -409,6 +408,7 @@ const tree=$('tree'), preview=$('preview'), previewWrap=$('previewWrap'),
   tabBar=$('tabBar'),
   tocPanel=$('tocPanel'), tocList=$('tocList');
 let dirHandle=null, activeEl=null, headingIds=[];
+let _lastTreeRefresh=0;   // v4.8.7: focus 自动刷新节流
 // v4.5.0 多标签: tabs 数组 + activeTab 索引
 let tabs=[];          // [{name, mdText, fileHandle, filePath, dirty}]
 let activeTab=-1;
@@ -1440,6 +1440,7 @@ async function openFolder(){
 
 async function refreshTree(){
   if(!dirHandle)return;
+  _lastTreeRefresh=Date.now();   // v4.8.7: focus 自动刷新的节流时间戳
   tree.textContent='';
   const entries=await iterToMap(dirHandle);
   buildTree(tree,entries);
@@ -1566,7 +1567,12 @@ document.body.ondrop=async e=>{
 $('openFolderBtn').onclick=openFolder;
 $('openFolderLink').onclick=openFolder;
 $('openFolderLink2').onclick=openFolder;
-$('refreshBtn').onclick=refreshTree;
+// v4.8.7: 手动刷新按钮已去掉——切回窗口（focus）时自动刷新文件树，3 秒节流
+window.addEventListener('focus',()=>{
+  if(!dirHandle) return;
+  if(Date.now()-_lastTreeRefresh<3000) return;
+  refreshTree();
+});
 document.onkeydown=e=>{
   if(e.ctrlKey&&e.key==='o'){e.preventDefault();openFolder()}
   if(e.ctrlKey&&e.key==='s'){e.preventDefault();saveFile()}
