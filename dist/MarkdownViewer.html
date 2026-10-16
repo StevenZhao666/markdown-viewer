@@ -273,7 +273,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.8.7</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.8.8</span></div>
   <div id="tabBar"></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
@@ -1582,7 +1582,10 @@ document.onkeydown=e=>{
 // ── 侧栏折叠 ──
 $('sideToggle').onclick=()=>{
   const s=$('sidebar'),t=$('sideToggle');
-  if(s.classList.contains('collapsed')){s.classList.remove('collapsed');t.textContent='◀';}
+  if(s.classList.contains('collapsed')){
+    s.classList.remove('collapsed');t.textContent='◀';
+    try{const w=localStorage.getItem('mdv_sideW'); if(w) s.style.width=w+'px';}catch(_){}
+  }
   else{s.classList.add('collapsed');t.textContent='▶';}
 };
 
@@ -1595,7 +1598,8 @@ $('sideToggle').onclick=()=>{
   handles.forEach(([hid,target,defW,key])=>{
     const h=$(hid); if(!h) return;
     let dragging=false,startX,startW;
-    if(key){const v=localStorage.getItem(key);if(v)target.style.width=v+'px';}
+    // v4.8.8: 折叠态下不恢复 inline 宽度（inline width 会覆盖 .collapsed 的 width:0）
+    if(key&&!target.classList.contains('collapsed')){const v=localStorage.getItem(key);if(v)target.style.width=v+'px';}
     h.addEventListener('mousedown',e=>{
       dragging=true;startX=e.clientX;
       startW=parseInt(getComputedStyle(target).width)||defW;
@@ -1603,7 +1607,18 @@ $('sideToggle').onclick=()=>{
     });
     document.addEventListener('mousemove',e=>{
       if(!dragging) return;
-      const w=Math.max(60,startW+(e.clientX-startX));
+      const raw=startW+(e.clientX-startX);
+      // v4.8.8: 侧栏拖到很窄 → 直接完全收起（拖拽即可隐藏，等同点折叠按钮）
+      if(target.id==='sidebar' && raw<80){
+        dragging=false;h.classList.remove('dragging');
+        document.body.style.cursor='';document.body.style.userSelect='';
+        target.classList.add('collapsed');
+        target.style.width='';                      // 清 inline，让 .collapsed{width:0} 生效
+        try{localStorage.removeItem(key);}catch(_){}
+        const t=$('sideToggle'); if(t) t.textContent='▶';
+        return;
+      }
+      const w=Math.max(60,raw);
       target.style.width=w+'px';if(key)localStorage.setItem(key,w);
     });
     document.addEventListener('mouseup',()=>{
