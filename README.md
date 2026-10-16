@@ -4,8 +4,23 @@
 
 | 文件 | 说明 |
 |---|---|
+| `dist/MarkdownViewer.html` | **离线单文件版**：`build_single.py` 打包产出（KaTeX 全内联），双击即用，**无需 Python、无需联网**——发给别人用这个 |
 | `viewer.html` + `helper.py` | **完整版（v4.8.1）**：分屏编辑、可视化公式编辑器、块编辑、文件树、多标签页、主题色盘。配合本地小服务直接读写磁盘文件 |
 | `MarkdownViewer-lite.html` | **轻量版（v4.1.5）**：单个 HTML 文件，双击即用，无需服务；保存走浏览器下载 |
+
+---
+
+## 离线单文件版（发给别人用这个）
+
+```bash
+python build_single.py     # 生成 dist/MarkdownViewer.html（约 750 KB）
+```
+
+一个文件包含全部：编辑器 + 内联 KaTeX（css/js/20 个字体全部 base64 内嵌），**不依赖 Python、helper.py、网络或任何同目录文件**。
+
+- 打开/保存文件走浏览器 File System Access API（Chrome / Edge 支持；国内双核浏览器的"兼容模式"可能只支持下载式保存）
+- 双击打开 → 拖入 `.md` 或点「打开文件夹」→ `Ctrl+S` 保存
+- 改了 `viewer.html` 后重跑 `python build_single.py` 重新打包
 
 ---
 
@@ -70,6 +85,8 @@
 viewer.html              # 完整版主程序（单文件 HTML+CSS+JS）
 helper.py                # 本地服务：文件读写 API + 静态文件（端口 18520）
 OpenMarkdown.bat / .ps1  # Windows 启动入口
+build_single.py          # 打包「离线单文件版」的脚本
+dist/MarkdownViewer.html # 离线单文件版产物（KaTeX 全内联，发给别人用）
 MarkdownViewer-lite.html # 轻量版
 lib/katex/               # KaTeX 本地化（css/js/字体）
 docs/程序结构详解.md      # 代码地图：模块、公式编辑器 Atom 树、改动指引
