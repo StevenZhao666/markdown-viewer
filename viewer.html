@@ -180,6 +180,9 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 .fe-node{display:inline-flex;vertical-align:middle;align-items:center;margin:0 1px;cursor:pointer;border-radius:3px;transition:background .1s}
 .fe-node:hover{background:var(--color-block-hover);outline:1px solid var(--color-accent)}
 .fe-node.fe-editing{outline:2px solid var(--color-accent);background:var(--color-bg-code)}
+/* v4.8.0: 选中的槽位/节点(点模板会插到这里) */
+.fe-node.fe-focused{outline:2px dashed var(--color-accent);outline-offset:2px;background:var(--color-block-hover)}
+.fe-ph.fe-focused{border-style:solid;border-color:var(--color-accent);background:var(--color-accent-pale)}
 .fe-text{padding:0 1px;color:var(--color-text)}
 .fe-ph{min-width:26px;height:26px;border:2px dashed var(--color-accent-dim);border-radius:4px;background:var(--color-bg-tertiary)}
 .fe-ph:hover{background:var(--color-btn-hover)}
@@ -265,7 +268,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.7.5</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.8.0</span></div>
   <div id="tabBar"></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
@@ -1562,6 +1565,7 @@ let _replaceRange=null; // v4.1: 预览加载公式的原文位置 {s,e}
 //   lim         {type:'lim', from:[], body:[]}
 let feTree=[];                 // 根序列(节点数组)
 let _feEditingPath=null;       // 当前编辑的节点路径(数组), null=未编辑
+let _feFocusedPath=null;       // v4.8.0: 选中的槽位/节点路径(数组) —— 点模板会插到这里, 键盘可直输
 
 // ── LaTeX → 树 (递归下降解析, 精简版) ──
 function feParse(latex){
@@ -1695,10 +1699,10 @@ function _feEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').
 function feNodeHTML(node,path){
   const p=path.join('.');
   const editCls=_feEditingPath&&_feEditingPath.join('.')===p?' fe-editing':'';
-  const click='onclick="event.stopPropagation();feEditNode(\''+p+'\')"';
+  const click='onclick="event.stopPropagation();feFocusNode(\''+p+'\')" ondblclick="event.stopPropagation();feEditNode(\''+p+'\')"';
   switch(node.type){
     case 'text': return '<span class="fe-node fe-text" data-path="'+p+'" '+click+'>'+_feEsc(node.value)+'</span>';
-    case 'placeholder': return '<span class="fe-node fe-ph" data-path="'+p+'" '+click+' title="点击输入"></span>';
+    case 'placeholder': return '<span class="fe-node fe-ph" data-path="'+p+'" '+click+' title="单击选中·再点模板可嵌套 / 双击输入"></span>';
     case 'frac':
       return '<span class="fe-node fe-frac" data-path="'+p+'" '+click+'><span class="fe-frac-num">'+(node.num||[]).map((c,i)=>feNodeHTML(c,path.concat('num',i))).join('')+'</span><div class="fe-frac-line"></div><span class="fe-frac-den">'+(node.den||[]).map((c,i)=>feNodeHTML(c,path.concat('den',i))).join('')+'</span></span>';
     case 'binom':
@@ -1719,24 +1723,25 @@ function feNodeHTML(node,path){
 }
 function feRender(){
   const c=$('feCanvas');
-  const editingPath=_feEditingPath? _feEditingPath.join('.'):null;
-  if(editingPath){
-    // 全量渲染, 但编辑中的节点替换为源码输入框
-    const rootPath=editingPath.split('.').slice(0,-1).join('.');
-    // 简单处理: 整树渲染, 编辑节点单独处理
-  }
+  // v4.8.0: 重建 DOM 前先摘掉旧编辑框的事件——否则节点被移除时同步触发 blur →
+  // feCommitEdit 重入 → 再次给 innerHTML 赋值, 浏览器抛 NotFoundError("moved in a blur handler")
+  _feDropEditBox();
+  if(_feFocusedPath && !_feSub(feTree,_feFocusedPath)) _feFocusedPath=null;  // 聚焦路径失效则清掉
   const html=feTree.map((n,i)=>feNodeHTML(n,[i])).join('');
   c.innerHTML=html||'<span class="hint">👆 点模板添加公式</span>';
+  _fePaintFocus();
   _feSyncLatex();
 }
 
 // ── 点击节点 → 局部转源码编辑 ──
 function feEditNode(pathStr){
+  if(_feEditingPath && _feEditingPath.join('.')!==pathStr) _feCloseEdit();  // 正在编辑别的节点 → 先提交它
   const path=pathStr.split('.').map(x=>isNaN(x)?x:parseInt(x));
   const node=_feSub(feTree,path);
   if(!node) return;
   // 源码框: 在画布中该节点位置显示contenteditable源码
-  _feEditingPath=path;
+  _feEditingPath=path; _feFocusedPath=path;
+  _feDropEditBox();
   const html=feTree.map((n,i)=>feNodeHTML(n,[i])).join('');
   const c=$('feCanvas');
   c.innerHTML=html; // 重渲染使该节点加 fe-editing class
@@ -1782,8 +1787,98 @@ function feCommitEdit(inp,path){
 }
 function feCancelEdit(){ _feEditingPath=null; feRender(); }
 
+// ══ v4.8.0: 槽位聚焦(选中) + 嵌套插入 + 键盘直输 ══
+function _fePaintFocus(){
+  const cur=_feFocusedPath?_feFocusedPath.join('.'):null;
+  document.querySelectorAll('#feCanvas .fe-node').forEach(el=>{
+    el.classList.toggle('fe-focused', !!cur && el.dataset.path===cur);
+  });
+}
+function feFocusNode(pathStr){
+  const path=pathStr.split('.').map(x=>isNaN(x)?x:parseInt(x));
+  if(!_feSub(feTree,path)) return;
+  _feCloseEdit();               // 有打开的编辑框 → 先提交, 一步到位不丢点击
+  _feFocusedPath=path;
+  _fePaintFocus();
+}
+function _feDropEditBox(){      // 重建 DOM 前摘掉旧编辑框的事件, 防 blur 同步重入
+  const inp=document.querySelector('.fe-edit-box');
+  if(inp){ inp.onblur=null; inp.onkeydown=null; }
+}
+function _feCloseEdit(){        // 主动提交当前编辑框
+  if(!_feEditingPath) return;
+  const inp=document.querySelector('.fe-edit-box');
+  if(inp) feCommitEdit(inp,_feEditingPath);
+  else { _feEditingPath=null; }
+}
+function _feFirstPlaceholderPath(node,path){  // 深度优先找第一个空槽(含矩阵单元格)
+  if(!node) return null;
+  if(node.type==='placeholder') return path;
+  const keys=['num','den','top','bottom','body','base','sup','sub','from','to'];
+  for(const k of keys){
+    const arr=node[k];
+    if(Array.isArray(arr)) for(let i=0;i<arr.length;i++){
+      const r=_feFirstPlaceholderPath(arr[i],path.concat(k,i));
+      if(r) return r;
+    }
+  }
+  if(node.type==='mtx'&&Array.isArray(node.cells)){
+    for(let ri=0;ri<node.cells.length;ri++) for(let ci=0;ci<node.cells[ri].length;ci++){
+      const cell=node.cells[ri][ci]||[];
+      for(let i=0;i<cell.length;i++){ const r=_feFirstPlaceholderPath(cell[i],path.concat('cells',ri,ci,i)); if(r) return r; }
+    }
+  }
+  return null;
+}
+// 点画布空白 → 取消聚焦; 编辑框开着时点其他节点 → 不让 blur 先重建 DOM(否则这一下点击会丢)
+const _feCvEl=$('feCanvas');
+if(_feCvEl){
+  _feCvEl.addEventListener('mousedown',e=>{
+    const t=e.target;
+    if(t && t.id==='feCanvas'){ _feFocusedPath=null; _fePaintFocus(); return; }
+    if(_feEditingPath && !(t.closest && t.closest('.fe-edit-box'))) e.preventDefault();
+  });
+  // 聚焦状态下的键盘直输: 可打印字符 → 该槽变文本(非槽位则插到其后); Backspace/Delete → 删除
+  document.addEventListener('keydown',e=>{
+    if(!_feFocusedPath) return;
+    if(!$('toolbar').classList.contains('show')) return;
+    const ae=document.activeElement;
+    if(ae && (ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'||ae.isContentEditable)) return;
+    if(e.ctrlKey||e.metaKey||e.altKey) return;
+    const {parent,idx}=_feParentPath(feTree,_feFocusedPath);
+    if(!parent || !Array.isArray(parent)) return;
+    const node=parent[idx];
+    if(e.key==='Backspace'||e.key==='Delete'){
+      e.preventDefault();
+      if(parent.length===1) parent[0]={type:'placeholder'};
+      else parent.splice(idx,1);
+      _feFocusedPath=null; feRender(); return;
+    }
+    if(e.key.length!==1) return;
+    e.preventDefault();
+    if(node && node.type==='placeholder'){ parent[idx]={type:'text',value:e.key}; }
+    else { parent.splice(idx+1,0,{type:'text',value:e.key}); _feFocusedPath=_feFocusedPath.slice(0,-1).concat(idx+1); }
+    feRender();
+  });
+}
+
 // ── 模板按钮: 在根序列追加节点 ──
-function _fePush(node){ feTree.push(node); _feEditingPath=null; feRender(); }
+function _fePush(node){
+  // v4.8.0: 有选中节点 → 插进它那里(占位槽则替换, 其他节点插到其后); 没有 → 追加到画布末尾
+  if(_feFocusedPath){
+    const {parent,idx}=_feParentPath(feTree,_feFocusedPath);
+    if(parent && Array.isArray(parent)){
+      let newPath;
+      if(parent[idx] && parent[idx].type==='placeholder'){ parent[idx]=node; newPath=_feFocusedPath.slice(0,-1).concat(idx); }
+      else { parent.splice(idx+1,0,node); newPath=_feFocusedPath.slice(0,-1).concat(idx+1); }
+      _feEditingPath=null;
+      _feFocusedPath=_feFirstPlaceholderPath(node,newPath)||newPath;  // 自动选中新公式第一个槽 → 可连点继续嵌套
+      feRender();
+      return;
+    }
+  }
+  feTree.push(node); _feEditingPath=null; feRender();
+}
 function feAddFrac(){ _fePush({type:'frac',num:[{type:'placeholder'}],den:[{type:'placeholder'}]}); }
 function feAddSqrt(){ _fePush({type:'sqrt',body:[{type:'placeholder'}]}); }
 function feAddInt(){ _fePush({type:'int',from:[{type:'placeholder'}],to:[{type:'placeholder'}],body:[{type:'placeholder'}]}); }
@@ -1827,7 +1922,7 @@ function feInsertMtx(cols,rows){
 // mtx: 树渲染
 function feMtxHTML(node,path){
   const p=path.join('.');
-  const click='onclick="event.stopPropagation();feEditNode(\''+p+'\')"';
+  const click='onclick="event.stopPropagation();feFocusNode(\''+p+'\')" ondblclick="event.stopPropagation();feEditNode(\''+p+'\')"';
   let rows='';
   (node.cells||[]).forEach((rowArr,ri)=>{
     let cells=rowArr.map((cell,ci)=>'<span class="fe-mtx-cell">'+cell.map((c,i)=>feNodeHTML(c,path.concat('cells',ri,ci,i))).join('')+'</span>').join('');
@@ -1855,7 +1950,7 @@ function _feSyncLatex(){
 }
 
 function feClear(){
-  feTree=[]; _feEditingPath=null; _focusedSlot=null; _canvasLatex=''; _replaceRange=null;
+  feTree=[]; _feEditingPath=null; _feFocusedPath=null; _focusedSlot=null; _canvasLatex=''; _replaceRange=null;
   $('feCanvas').innerHTML='<span class="hint">👆 点模板添加公式</span>';
   $('feLatexCode').textContent='(空)';
   $('feEditor').style.display='none';
@@ -1869,7 +1964,7 @@ function feUpdateRaw(){
 }
 // 从预览载入公式: LaTeX→树→渲染
 function feLoadLatex(latex){
-  feTree=feParse(latex); _feEditingPath=null; _focusedSlot=null;
+  feTree=feParse(latex); _feEditingPath=null; _feFocusedPath=null; _focusedSlot=null;
   if(feTree.length>0){
     feRender();
     $('feEditor').style.display='';
