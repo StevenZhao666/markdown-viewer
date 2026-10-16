@@ -269,7 +269,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.8.2</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.8.4</span></div>
   <div id="tabBar"></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
@@ -1290,6 +1290,11 @@ async function saveFile(){
     }catch(e){alert('保存失败: '+e.message);}
     return;
   }
+  if(t.fileHandle._ro){   // v4.8.3: 只读打开的（拖入文件夹的降级模式）→ 不能写回原文件
+    alert('这个文件是以「只读方式」打开的（拖入文件夹的降级模式），没法直接写回原文件。\n将用「另存为」保存一份。\n想要可读写：请用「打开文件夹」按钮重新打开这个文件夹。');
+    await saveAsNewFile();
+    return;
+  }
   try{
     const writable=await t.fileHandle.createWritable();
     await writable.write(t.mdText);
@@ -1385,6 +1390,27 @@ function buildTree(container,entries,basePath=''){
     };
     container.appendChild(row);
   }
+}
+
+// v4.8.3: 只读文件夹支持——把 webkitGetAsEntry 的 FileSystemDirectoryEntry
+// 包装成 FileSystemHandle 的形状（kind/name/values/getFile），复用 buildTree/loadFile。
+// 用途：拖入文件夹时若拿不到可读写句柄（getAsFileSystemHandle 返回 null/超时），降级用。
+function _roReadEntries(dirEntry){
+  return new Promise((res,rej)=>{
+    const rd=dirEntry.createReader(); const all=[];
+    const step=()=>rd.readEntries(batch=>{ if(!batch.length) return res(all); all.push(...batch); step(); }, rej);
+    step();
+  });
+}
+function _roFile(entry){
+  return { kind:'file', name:entry.name, _ro:true,
+    getFile:()=>new Promise((res,rej)=>entry.file(res,rej)) };
+}
+function _roDir(entry){
+  return { kind:'directory', name:entry.name, _ro:true,
+    async *values(){
+      for(const it of await _roReadEntries(entry)) yield it.isDirectory? _roDir(it) : _roFile(it);
+    } };
 }
 
 async function iterToMap(dirHandle){
@@ -1485,28 +1511,50 @@ document.body.ondrop=async e=>{
   preview.style.outline=''; try{dropZone.style.outline=''}catch(_){}
   const dt=e.dataTransfer;
   if(!dt) return;
-  // v4.8.2: ① 先处理普通 .md 文件——最可靠的一条路，不依赖文件系统句柄。
-  // （旧版先 await getAsFileSystemHandle()，个别环境里该 Promise 一直挂起，
-  //   把后面的文件处理永远卡住 → 表现就是"拖了没反应"）
-  const files=[...dt.files].filter(f=>f.name.endsWith('.md')||f.name.endsWith('.markdown')||f.type==='text/markdown');
+  // v4.8.4: ⚠️ 必须在任何 await 之前【同步快照】——drop 处理器一旦 await，
+  // 浏览器会把 dataTransfer.items / files 清空（protected mode），
+  // 后续所有读取（含下面的 entry 降级）都会拿到空数组。
+  const filesSnap=[...dt.files];
+  const itemsSnap=[...dt.items].map(it=>{
+    let entry=null;
+    try{ entry=it.webkitGetAsEntry? it.webkitGetAsEntry():null; }catch(_){}
+    return {item:it, entry};
+  });
+  // ① 普通 .md 文件：直接打开（最可靠的一条路，不依赖文件系统句柄）
+  const files=filesSnap.filter(f=>f.name.endsWith('.md')||f.name.endsWith('.markdown')||f.type==='text/markdown');
   if(files.length){
     const text=await files[0].text();
     openDoc(text,files[0].name,null,null);
     return;
   }
-  // ② 再试文件夹句柄（File System Access），带超时防止 Promise 挂起
-  try{
-    for(const item of [...dt.items]){
-      if(item.kind!=='file'||typeof item.getAsFileSystemHandle!=='function') continue;
-      const handle=await Promise.race([
+  const diag=[];
+  const sidebarOut=()=>{const s=$('sidebar'); if(s&&s.classList.contains('collapsed')){s.classList.remove('collapsed');$('sideToggle').textContent='◀';}};
+  // ② 可读写句柄（File System Access），带超时防止 Promise 挂起
+  for(const {item} of itemsSnap){
+    if(!item||item.kind!=='file'||typeof item.getAsFileSystemHandle!=='function'){diag.push('无句柄API');continue;}
+    let handle=null, err='';
+    try{
+      handle=await Promise.race([
         item.getAsFileSystemHandle(),
         new Promise(r=>setTimeout(()=>r(null),800))
       ]);
-      if(handle&&handle.kind==='directory'){dirHandle=handle;saveHandle(dirHandle);await refreshTree();return}
+    }catch(ex){ err=(ex&&ex.name||'')+':'+String((ex&&ex.message)||'').slice(0,50); }
+    if(handle&&handle.kind==='directory'){dirHandle=handle;saveHandle(dirHandle);await refreshTree();sidebarOut();return}
+    diag.push('句柄='+(handle?handle.kind:'null')+(err?'('+err+')':''));
+  }
+  // ③ 降级：webkitGetAsEntry（快照好的）以【只读】方式打开文件夹
+  for(const {entry} of itemsSnap){
+    if(entry&&entry.isDirectory){
+      dirHandle=_roDir(entry);
+      await refreshTree();
+      sidebarOut();
+      pathBar.textContent=entry.name+'（只读）';
+      return;
     }
-  }catch(_){}
-  // ③ 都没成 → 明确告诉用户怎么办（旧版是静默无反应）
-  alert('没识别到可打开的内容。\n· 拖 .md 文件：直接打开\n· 要整个文件夹（笔记目录）：请点上方「打开文件夹」按钮来选择（有些浏览器里文件夹不能直接拖进来）');
+    diag.push('entry='+(entry?((entry.isDirectory?'dir':'file')+':'+entry.name):'null'));
+  }
+  // ④ 都没成 → 明确告诉用户怎么办（附诊断，便于排查）
+  alert('没识别到可打开的内容。\n（' + (diag.join(' / ')||'dataTransfer 里没有可用项') + '）\n\n· 拖 .md 文件：直接打开\n· 要整个文件夹（笔记目录）：请点上方「打开文件夹」按钮选择（推荐，可读写）');
 };
 
 // ── 按钮 / 键盘 ──
