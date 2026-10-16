@@ -268,7 +268,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.8.0</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.8.1</span></div>
   <div id="tabBar"></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
@@ -1677,10 +1677,10 @@ function feTreeToLatex(nodes){
   return nodes.map(n=>{
     switch(n.type){
       case 'text': return n.value||'';
-      case 'placeholder': return '?';
-      case 'frac': return '\\frac{'+(feTreeToLatex(n.num||[])||'?')+'}{'+(feTreeToLatex(n.den||[])||'?')+'}';
-      case 'binom': return '\\binom{'+(feTreeToLatex(n.top||[])||'?')+'}{'+(feTreeToLatex(n.bottom||[])||'?')+'}';
-      case 'sqrt': return '\\sqrt{'+(feTreeToLatex(n.body||[])||'?')+'}';
+      case 'placeholder': return '';   // v4.8.1: 空槽不输出 '?', 渲染成空位
+      case 'frac': return '\\frac{'+(feTreeToLatex(n.num||[]))+'}{'+(feTreeToLatex(n.den||[]))+'}';
+      case 'binom': return '\\binom{'+(feTreeToLatex(n.top||[]))+'}{'+(feTreeToLatex(n.bottom||[]))+'}';
+      case 'sqrt': return '\\sqrt{'+(feTreeToLatex(n.body||[]))+'}';
       case 'subsup':
         return feTreeToLatex(n.base||[])+(n.sup&&n.sup.length?'^{'+feTreeToLatex(n.sup)+'}':'')+(n.sub&&n.sub.length?'_{'+feTreeToLatex(n.sub)+'}':'');
       case 'int': return '\\int'+(n.from&&n.from.length?'_{'+feTreeToLatex(n.from)+'}':'')+(n.to&&n.to.length?'^{'+feTreeToLatex(n.to)+'}':'')+'{'+feTreeToLatex(n.body||[])+'}';
@@ -1775,7 +1775,7 @@ function feCommitEdit(inp,path){
     const newNode=feParse(src); // 可能是多节点
     const {parent,idx}=_feParentPath(feTree,path);
     if(newNode.length===0){
-      parent.splice(idx,1);
+      parent[idx]={type:'placeholder'};   // v4.8.1: 源码框清空 = 还原成空槽(双击空槽回车不会丢结构)
     }else if(newNode.length===1){
       parent[idx]=newNode[0];
     }else{
@@ -1935,7 +1935,7 @@ function feMtxLatex(node){
   let m='\\begin{bmatrix}';
   (node.cells||[]).forEach((rowArr,ri)=>{
     if(ri>0) m+=' \\\\ ';
-    m+=rowArr.map(cell=>feTreeToLatex(cell||[])||'?').join(' & ');
+    m+=rowArr.map(cell=>feTreeToLatex(cell||[])).join(' & ');
   });
   return m+'\\end{bmatrix}';
 }
