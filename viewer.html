@@ -64,10 +64,10 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 .toc-panel.visible{display:flex}
 .toc-header{padding:8px 10px;border-bottom:1px solid #444;font-size:12px;color:var(--color-text-dim);text-transform:uppercase;letter-spacing:1px;display:flex;justify-content:space-between;align-items:center}
 .toc-header button{background:none;border:none;color:var(--color-text-dim);cursor:pointer;font-size:16px;padding:0 4px}
-.toc-header button:hover{color:#fff}
+.toc-header button:hover{color:var(--color-text)}
 #tocList{flex:1;overflow-y:auto;padding:6px 0}
 #tocList .toc-item{display:block;padding:5px 12px 5px 16px;cursor:pointer;color:var(--color-text);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:2px solid transparent;transition:all .1s;font-size:13px}
-#tocList .toc-item:hover{color:#fff;background:var(--color-block-hover)}
+#tocList .toc-item:hover{color:var(--color-text);background:var(--color-block-hover)}
 /* 各级别同时高亮,互不干扰——h1最亮→h6最淡(opacity递减) */
 #tocList .toc-item.lvl1.active{color:#fff;background:var(--color-accent-pale);border-left-color:var(--color-accent);opacity:1}
 #tocList .toc-item.lvl2.active{color:#fff;background:var(--color-accent-pale);border-left-color:var(--color-accent-dim);opacity:0.82}
@@ -83,9 +83,9 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 #tocList .toc-item.lvl6{padding-left:72px;font-size:11px;color:var(--color-text-faint)}
 .toc-empty{padding:20px;text-align:center;color:var(--color-text-faint);font-size:13px}
 /* 设置弹窗 */
-.set-modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:1000}
+.set-modal{position:fixed;inset:0;background:transparent;display:none;align-items:center;justify-content:center;z-index:1000}
 .set-modal.show{display:flex}
-.set-box{width:300px;background:var(--color-bg-secondary);border:1px solid var(--color-border);border-radius:8px;padding:16px;color:var(--color-text)}
+.set-box{width:300px;background:var(--color-bg-secondary);border:1px solid var(--color-border);border-radius:8px;padding:16px;color:var(--color-text);box-shadow:0 8px 32px rgba(0,0,0,.28)}
 .set-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:14px;font-weight:600}
 .set-header button{background:none;border:none;color:var(--color-text-dim);cursor:pointer;font-size:16px}
 .set-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:13px}
@@ -108,13 +108,13 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 #preview pre code{background:none;padding:0;color:var(--color-text);font-size:14px}
 #preview ul,#preview ol{padding-left:28px;margin:10px 0}
 #preview li{margin:4px 0}
-#preview a{color:#5aafff}
+#preview a{color:var(--color-link)}
 #preview blockquote{border-left:3px solid var(--color-border);padding-left:14px;color:var(--color-text-dim);margin:14px 0}
 #preview table{border-collapse:collapse;margin:14px 0;width:100%}
-#preview th,#preview td{border:1px solid #555;padding:10px 14px;text-align:left}
+#preview th,#preview td{border:1px solid var(--color-rule);padding:10px 14px;text-align:left}
 #preview th{background:var(--color-bg-code);color:var(--color-text)}
 #preview img{max-width:100%}
-#preview hr{border:none;border-top:1px solid #555;margin:24px 0}
+#preview hr{border:none;border-top:1px solid var(--color-rule);margin:24px 0}
 /* 块编辑 */
 .block{padding:8px 12px;border-radius:6px;transition:background .1s;cursor:text;position:relative}
 .block:hover{background:var(--color-block-hover)}
@@ -141,7 +141,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 #toolbar.show{display:flex}
 .tb-header{padding:10px 12px;border-bottom:1px solid #444;font-size:13px;color:var(--color-text-dim);display:flex;justify-content:space-between;align-items:center}
 .tb-header button{background:none;border:none;color:var(--color-text-faint);cursor:pointer;font-size:16px;padding:0 4px}
-.tb-header button:hover{color:#fff}
+.tb-header button:hover{color:var(--color-text)}
 .tb-scroll{flex:1;overflow-y:auto;padding:8px}
 .tb-btn{display:flex;align-items:center;justify-content:space-between;width:100%;padding:10px 12px;background:var(--color-btn);color:#ddd;border:1px solid var(--color-border);border-radius:4px;cursor:pointer;font-size:14px;font-family:'Times New Roman',serif;transition:all .1s;margin:2px 0}
 .tb-btn:hover{background:var(--color-btn-hover);border-color:var(--color-accent);color:#fff}
@@ -215,19 +215,19 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 .fe-slot:empty::before{content:attr(data-ph);color:transparent}
 /* v4.1.10: 预览层浮在编辑层上方，pointer-events穿透点击直达编辑层 */
 .fe-slw{position:relative;display:inline-block;vertical-align:middle;cursor:text}
-.fe-slr{pointer-events:none;position:absolute;top:0;left:0;z-index:2;white-space:nowrap;min-width:32px;padding:4px 8px;border:2px dashed transparent;border-radius:4px;color:#e0e0e0;text-align:center;font-size:16px}
+.fe-slr{pointer-events:none;position:absolute;top:0;left:0;z-index:2;white-space:nowrap;min-width:32px;padding:4px 8px;border:2px dashed transparent;border-radius:4px;color:var(--color-text);text-align:center;font-size:16px}
 .fe-slr .katex{font-size:15px}
 .fe-slot:focus~.fe-slr{visibility:hidden} /* 编辑时隐藏预览 */
 .fe-frac{display:inline-grid;grid-template-areas:'num''line''den';grid-template-columns:1fr;justify-items:center;vertical-align:middle;margin:0 4px;row-gap:2px}
 .fe-frac-num{grid-area:num}.fe-frac-den{grid-area:den}
-.fe-frac-line{grid-area:line;width:100%;min-width:40px;height:2px;background:#aaa}
+.fe-frac-line{grid-area:line;width:100%;min-width:40px;height:2px;background:var(--color-text-dim)}
 .fe-binom{display:inline-flex;align-items:center;vertical-align:middle;margin:0 4px;line-height:1.15}
-.fe-binom-paren{font-size:24px;color:#ddd;font-family:'Times New Roman',serif;line-height:1}
+.fe-binom-paren{font-size:24px;color:var(--color-text);font-family:'Times New Roman',serif;line-height:1}
 .fe-binom-stack{display:inline-flex;flex-direction:column;justify-content:center;text-align:center;padding:0 2px}
 .fe-binom-top,.fe-binom-bot{display:block;min-width:24px}
 .fe-sqrt{display:inline-flex;align-items:center;vertical-align:middle;margin:0 4px}
-.fe-sqrt-sign{font-size:20px;color:#ddd;margin-right:1px;font-family:'Times New Roman',serif}
-.fe-sqrt-overline{border-top:2px solid #aaa;padding-top:1px;margin-left:-1px}
+.fe-sqrt-sign{font-size:20px;color:var(--color-text);margin-right:1px;font-family:'Times New Roman',serif}
+.fe-sqrt-overline{border-top:2px solid var(--color-text-dim);padding-top:1px;margin-left:-1px}
 .fe-int{display:inline-grid;grid-template-areas:'. sup .''sym . expr''. sub .';grid-template-columns:auto 8px 1fr;align-items:center;justify-items:center;vertical-align:middle;margin:0 4px;column-gap:2px;row-gap:1px}
 .fe-int-sym{grid-area:sym;font-size:26px;color:#ddd;font-family:'Times New Roman',serif}
 .fe-int-sub{grid-area:sub;font-size:13px}.fe-int-sup{grid-area:sup;font-size:13px}
@@ -265,7 +265,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:#3c3c3c;border:1px solid #555;color:#aaa;border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.7.4</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.7.5</span></div>
   <div id="tabBar"></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
@@ -414,6 +414,8 @@ function _tcDim(hex,f){ const n=parseInt(hex.slice(1),16); return '#'+[16,8,0].m
 function _tcLum(hex){ const n=parseInt(hex.slice(1),16); return (0.299*((n>>16)&0xff)+0.587*((n>>8)&0xff)+0.114*(n&0xff))/255; }
 // 派生系数：亮背景取倒数（往暗里调），暗背景原样（往亮里调）
 function _tcStep(bg,f){ return _tcLum(bg)>0.5 ? 1/f : f; }
+// 线性混合：把 hex 朝 to 混 t（0-1）。用于要「加白/加黑」而非缩放的派生色
+function _tcMix(hex,to,t){const a=parseInt(hex.slice(1),16),b=parseInt(to.slice(1),16);return '#'+[16,8,0].map(s=>Math.round(((a>>s)&0xff)*(1-t)+((b>>s)&0xff)*t).toString(16).padStart(2,'0')).join('');}
 function _tcApply(c){
   const r=document.documentElement.style;
   const sb=_tcStep(c.bg,1.12), st=_tcStep(c.bg,1.25), sd=_tcStep(c.bg,1.3);
@@ -435,6 +437,11 @@ function _tcApply(c){
   r.setProperty('--color-bg-code',_tcDim(c.bg,scode));
   r.setProperty('--color-text-faint',_tcDim(c.text,stfaint));
   r.setProperty('--color-code',_tcDim(c.accent,sc));
+  // 分隔线/表格线：往背景的反方向混（暗背景加白，亮背景加黑），保持与原 #555 相近的观感
+  const _dark=_tcLum(c.bg)<=0.5;
+  r.setProperty('--color-rule',_tcMix(c.bg,_dark?'#ffffff':'#000000',0.3));
+  // 链接色：随 accent 走，暗背景提亮、亮背景压暗
+  r.setProperty('--color-link',_dark?_tcMix(c.accent,'#ffffff',0.35):_tcMix(c.accent,'#000000',0.25));
   // 调试: 色盘下方显示当前值
   if($('tcDebug')) $('tcDebug').textContent='bg='+c.bg+' accent='+c.accent+' text='+c.text;
 }
