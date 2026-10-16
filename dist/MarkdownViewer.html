@@ -269,7 +269,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.8.1</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.8.2</span></div>
   <div id="tabBar"></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
@@ -1400,7 +1400,11 @@ async function openFolder(){
     saveHandle(dirHandle);
     // 自动展开侧栏
     const s=$('sidebar'); if(s&&s.classList.contains('collapsed')){s.classList.remove('collapsed');$('sideToggle').textContent='◀';}
-  }catch(e){if(e.name!=='AbortError') console.error(e)}
+  }catch(e){
+    if(e.name==='AbortError') return;   // 用户自己取消，不用打扰
+    console.error(e);
+    alert('文件夹选择器没能打开：' + (e.message||e.name) + '\n\n· 确认是用 Edge / Chrome 打开的（如果双击没反应，右键本文件 → 打开方式 → Microsoft Edge）\n· 文件如果还在网盘/压缩包里，先解压到普通文件夹再试');
+  }
 }
 
 async function refreshTree(){
@@ -1472,26 +1476,37 @@ function _toggleTOC(){
   if(tp.classList.contains('visible')){tp.classList.remove('visible');$('tocBtn').style.display='inline-block';}
   else{tp.classList.add('visible');$('tocBtn').style.display='none';}
 }
-document.body.ondragover=e=>{e.preventDefault(); preview.style.outline='2px dashed #007acc'};
+document.body.ondragover=e=>{e.preventDefault(); preview.style.outline='2px dashed #007acc'; try{dropZone.style.outline='2px dashed #007acc'}catch(_){}};
 document.body.ondragleave=e=>{
-  if(!document.body.contains(e.relatedTarget)){preview.style.outline=''}
+  if(!document.body.contains(e.relatedTarget)){preview.style.outline=''; try{dropZone.style.outline=''}catch(_){}}
 };
 document.body.ondrop=async e=>{
   e.preventDefault();
-  preview.style.outline='';
-  try{
-    for(const item of [...e.dataTransfer.items]){
-      if(item.kind==='file'){
-        const handle=await item.getAsFileSystemHandle();
-        if(handle?.kind==='directory'){dirHandle=handle;saveHandle(dirHandle);await refreshTree();return}
-      }
-    }
-  }catch(_){}
-  const files=[...e.dataTransfer.files].filter(f=>f.name.endsWith('.md')||f.type==='text/markdown');
+  preview.style.outline=''; try{dropZone.style.outline=''}catch(_){}
+  const dt=e.dataTransfer;
+  if(!dt) return;
+  // v4.8.2: ① 先处理普通 .md 文件——最可靠的一条路，不依赖文件系统句柄。
+  // （旧版先 await getAsFileSystemHandle()，个别环境里该 Promise 一直挂起，
+  //   把后面的文件处理永远卡住 → 表现就是"拖了没反应"）
+  const files=[...dt.files].filter(f=>f.name.endsWith('.md')||f.name.endsWith('.markdown')||f.type==='text/markdown');
   if(files.length){
     const text=await files[0].text();
     openDoc(text,files[0].name,null,null);
+    return;
   }
+  // ② 再试文件夹句柄（File System Access），带超时防止 Promise 挂起
+  try{
+    for(const item of [...dt.items]){
+      if(item.kind!=='file'||typeof item.getAsFileSystemHandle!=='function') continue;
+      const handle=await Promise.race([
+        item.getAsFileSystemHandle(),
+        new Promise(r=>setTimeout(()=>r(null),800))
+      ]);
+      if(handle&&handle.kind==='directory'){dirHandle=handle;saveHandle(dirHandle);await refreshTree();return}
+    }
+  }catch(_){}
+  // ③ 都没成 → 明确告诉用户怎么办（旧版是静默无反应）
+  alert('没识别到可打开的内容。\n· 拖 .md 文件：直接打开\n· 要整个文件夹（笔记目录）：请点上方「打开文件夹」按钮来选择（有些浏览器里文件夹不能直接拖进来）');
 };
 
 // ── 按钮 / 键盘 ──
