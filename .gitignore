@@ -1,1 +1,5 @@
 backups/
+*.bak
+viewer.html.bak-*
+.hermes/
+_build_a4_pdf.py

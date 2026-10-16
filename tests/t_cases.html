@@ -1,0 +1,30 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>
+<div class="blk" data-i="0"><h1 id="h-公式渲染回归用例-独立测试文件-不涉及任何笔记">公式渲染回归用例（独立测试文件，不涉及任何笔记）</h1></div>
+<div class="blk" data-i="1"><h2 id="h-1-裸小于号">1. 裸小于号</h2>
+<p>若 $x&lt;y$ 且 $0&lt;x&lt;1$，则 $y>x$。</p></div>
+<div class="blk" data-i="2"><p>正文里的裸小于：a &lt; b 这种情况。</p></div>
+<div class="blk" data-i="3"><strong>粗体行</strong>：$a-b\in\mathbb{P}$ 时写 $a>b$（或 $b&lt;a$）。</div>
+<div class="blk" data-i="4"><blockquote>引用里的 $k&lt;n$ 与 $I_n\subseteq I_k$。</blockquote></div>
+<div class="blk" data-i="5"><ul><li>列表里的 $0&lt;x&lt;1$ 时成立</li></ul></div>
+<div class="blk" data-i="6"><h2 id="h-2-星号上标">2. 星号上标</h2>
+<p>例如 $x^*=-\varepsilon/2$ 满足 $\lvert x^*-0\rvert&lt;\varepsilon$ 却在 $I$ 外。</p></div>
+<div class="blk" data-i="7"><h2 id="h-3-表格-单元格里含绝对值竖线">3. 表格（单元格里含绝对值竖线）</h2>
+<table><thead><tr><th>情形</th><th>不等式</th><th>结果</th></tr></thead><tbody><tr><td>(b)</td><td>$\forall\varepsilon>0:\ |x_n-x|&lt;\varepsilon$</td><td>$x-\varepsilon&lt;x_n&lt;x+\varepsilon$</td></tr><tr><td>(i)</td><td>$|x-1|&lt;|x|$</td><td>$x>1/2$</td></tr></tbody></table></div>
+<div class="blk" data-i="8"><h2 id="h-4-显示公式-不应被段落标签包裹">4. 显示公式（不应被段落标签包裹）</h2>
+<div class="math-block">$$0&lt;x&lt;1$$</div></div>
+<div class="blk" data-i="9"><h2 id="h-5-代码块与行内代码">5. 代码块与行内代码</h2>
+<pre><code>if (a&lt;b) { return a; }
+</code></pre></div>
+<div class="blk" data-i="10"><p>写 <code>a&lt;b</code> 这样。</p></div>
+<div class="blk" data-i="11"><h2 id="h-6-html-标签">6. HTML 标签</h2>
+<details><summary>答案</summary></div>
+<div class="blk" data-i="12"><p>$x&lt;y$</p></div>
+<div class="blk" data-i="13"></details></div>
+<div class="blk" data-i="14"><h2 id="h-7-其他边界">7. 其他边界</h2>
+<p>价格 <span class="md-lit-dollar">$</span>5 与公式 $a+b$。集合 A & B 的并。</p></div>
+<div class="blk" data-i="15"><a href="http://x.com?a=1&b=2" target="_blank">链接</a> 与 $a&lt;b$。</div>
+<div class="blk" data-i="16"><h2 id="h-8-标题里的公式-与-与">8. 标题里的公式 $\sup$ 与 $\sqrt2$ 与 $\mathbb{R}$</h2>
+<p>标题公式进目录时也应该渲染。</p></div>
+<div class="blk" data-i="17"><h2 id="h-9-文件末尾的表格-无尾随换行">9. 文件末尾的表格（无尾随换行）</h2>
+<table><thead><tr><th>列A</th><th>列B</th></tr></thead><tbody><tr><td>$a&lt;b$</td><td>$c>d$</td></tr></tbody></table></div>
+</body></html>
