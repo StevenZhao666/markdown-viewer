@@ -1,6 +1,6 @@
 // 从 viewer.html 提取真实 renderMD（slug 用 stub，避免带入 DOM 代码）
 const fs=require('fs');
-const html=fs.readFileSync('D:/MarkdownViewer/viewer.html','utf8');
+const html=fs.readFileSync('D:/Projects/markdown-viewer/viewer.html','utf8');
 const m=html.match(/function renderMD\([\s\S]*?\r?\n\}\r?\n/);
 if(!m) throw 'renderMD not found';
 const code='function slug(t){return t.trim().toLowerCase().replace(/\\s+/g,"-").replace(/[^\\w\\u4e00-\\u9fa5-]/g,"");}\n'+m[0];

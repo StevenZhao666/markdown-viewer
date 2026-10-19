@@ -16,8 +16,8 @@ function makeRender(file) {
   return new Function(grab('slug') + '\n' + grab('renderMD') + '\nreturn renderMD;')();
 }
 
-const OLD = makeRender('D:/MarkdownViewer/backups/viewer-v4.7.0-before-lt-escape.html');
-const NEW = makeRender('D:/MarkdownViewer/viewer.html');
+const OLD = makeRender('D:/Projects/markdown-viewer/backups/viewer-v4.7.0-before-lt-escape.html');
+const NEW = makeRender('D:/Projects/markdown-viewer/viewer.html');
 
 const cases = {
   A_定义行: '**2.1.6 Definition** $a-b\\in\\mathbb{P}$ 时写 $a>b$（或 $b<a$）；$a-b\\in\\mathbb{P}\\cup\\{0\\}$ 时写 $a\\ge b$。',

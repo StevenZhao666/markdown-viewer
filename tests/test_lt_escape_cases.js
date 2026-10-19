@@ -17,8 +17,8 @@ function makeRender(file) {
   return new Function(grab('slug') + '\n' + grab('renderMD') + '\nreturn renderMD;')();
 }
 
-const R = makeRender('D:/MarkdownViewer/viewer.html');
-const md = fs.readFileSync('D:/MarkdownViewer/tests/t_cases.md', 'utf8');
+const R = makeRender('D:/Projects/markdown-viewer/viewer.html');
+const md = fs.readFileSync('D:/Projects/markdown-viewer/tests/t_cases.md', 'utf8');
 const blocks = md.split(/\n[ \t]*\n/);
 let html = '<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>\n';
 blocks.forEach((b, i) => {
@@ -26,5 +26,5 @@ blocks.forEach((b, i) => {
   html += '<div class="blk" data-i="' + i + '">' + R(b) + '</div>\n';
 });
 html += '</body></html>';
-fs.writeFileSync('D:/MarkdownViewer/tests/t_cases.html', html, 'utf8');
+fs.writeFileSync('D:/Projects/markdown-viewer/tests/t_cases.html', html, 'utf8');
 console.log('块数:', blocks.filter(b => b.trim()).length, ' 输出:', html.length, '字节');

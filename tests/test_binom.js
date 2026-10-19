@@ -1,6 +1,6 @@
 // 从 viewer.html 提取 feParse / feTreeToLatex 并单元测试 binom
 const fs=require('fs');
-const html=fs.readFileSync('D:/MarkdownViewer/viewer.html','utf8');
+const html=fs.readFileSync('D:/Projects/markdown-viewer/viewer.html','utf8');
 
 function extractFn(src, name, nextName){
   const start=src.indexOf('function '+name+'(');

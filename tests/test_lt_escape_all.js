@@ -19,8 +19,8 @@ function makeRender(file) {
 const dir = 'D:/UM/MATH2003 数学分析 I Mathematical Analysis I/笔记';
 const files = fs.readdirSync(dir).filter(f => f.endsWith('.md'));
 const jobs = [
-  ['new', makeRender('D:/MarkdownViewer/viewer.html'), 'D:/MarkdownViewer/tests/t_all_new.html'],
-  ['old', makeRender('D:/MarkdownViewer/backups/viewer-v4.7.0-before-lt-escape.html'), 'D:/MarkdownViewer/tests/t_all_old.html']
+  ['new', makeRender('D:/Projects/markdown-viewer/viewer.html'), 'D:/Projects/markdown-viewer/tests/t_all_new.html'],
+  ['old', makeRender('D:/Projects/markdown-viewer/backups/viewer-v4.7.0-before-lt-escape.html'), 'D:/Projects/markdown-viewer/tests/t_all_old.html']
 ];
 for (const [tag, render, outPath] of jobs) {
   let html = '<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>\n';
