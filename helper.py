@@ -9,8 +9,9 @@ import os
 import socketserver
 
 PORT = 18520
-VIEWER_PATH = r'D:\MarkdownViewer\viewer.html'
-ROOT_DIR = r'D:\MarkdownViewer'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+VIEWER_PATH = os.path.join(BASE_DIR, 'viewer.html')
+ROOT_DIR = BASE_DIR
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
