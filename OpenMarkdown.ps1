@@ -1,11 +1,14 @@
 param([string]$FilePath)
 
-# 防止UNC路径导致工作目录异常
-Set-Location "D:\MarkdownViewer"
+# 跟随脚本所在目录，项目整体搬家后不用再改这里
+$ROOT = $PSScriptRoot
+if (-not $ROOT) { $ROOT = Split-Path -Parent $MyInvocation.MyCommand.Path }
+Set-Location $ROOT
 
 $PORT = 18520
 $PYTHON = "C:\Users\风夜\AppData\Local\Programs\Python\Python311\python.exe"
-$HELPER = "D:\MarkdownViewer\helper.py"
+if (-not (Test-Path $PYTHON)) { $PYTHON = "python" }
+$HELPER = Join-Path $ROOT "helper.py"
 
 # 检测端口是否已监听（助手已在运行？）
 function Test-Port($hostname, $port) {
