@@ -5,9 +5,18 @@
 - 一键设为默认.bat / _setup.ps1（注册 + 直接生效逻辑 + 兜底引导）
 - 使用说明.txt
 """
-import os, struct
+import os, struct, shutil
 
-PKG = r'D:\MarkdownViewer\portable-package\MarkdownViewer'
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # 仓库根，别再写死绝对路径
+PKG = os.path.join(ROOT, 'portable-package', 'MarkdownViewer')
+
+# 便携版里的 helper.py / viewer.html 必须与仓库根同步：
+# 曾经分发出去的那版 helper.py 写死 VIEWER_PATH = r'D:\MarkdownViewer\viewer.html'，
+# 别人解压到别的目录 → 页面变成 {"error": "MarkdownViewer.html not found at D:\MarkdownViewer\viewer.html"}
+for _f in ('helper.py', 'viewer.html'):
+    shutil.copy2(os.path.join(ROOT, _f), os.path.join(PKG, _f))
+    print('SYNC', _f)
+
 
 # ─────────────────────── 1) icon.ico ───────────────────────
 def draw(size):
