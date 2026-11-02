@@ -144,7 +144,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 .block-edit-preview th,.block-edit-preview td{border:1px solid #555;padding:4px 8px;text-align:left}
 .block-edit-preview th{background:var(--color-btn);color:var(--color-text);font-weight:600}
 /* 符号工具栏 */
-#toolbar{width:320px;flex-shrink:0;background:var(--color-bg-secondary);border-left:1px solid #444;display:none;flex-direction:column;overflow-y:auto}
+#toolbar{width:320px;max-width:min(320px,30vw);flex-shrink:0;/* v4.8.11: 窄窗口/低分辨率下最多占 40% 宽，不再把正文挤没 */background:var(--color-bg-secondary);border-left:1px solid #444;display:none;flex-direction:column;overflow-y:auto}
 #toolbar.show{display:flex}
 .tb-header{height:42px;padding:0 12px;border-bottom:1px solid #444;font-size:13px;color:var(--color-text-dim);display:flex;justify-content:space-between;align-items:center}   /* v4.8.10 */
 .tb-header button{background:none;border:none;color:var(--color-text-faint);cursor:pointer;font-size:16px;padding:0 4px}
@@ -181,7 +181,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 .fe-tpl-btn:hover{background:var(--color-btn-hover);border-color:var(--color-accent)}
 .fe-tpl-btn .fe-vis{font-size:16px;color:#ccc;margin-top:2px;font-family:'Times New Roman',serif}
 /* 可视化公式块 + Canvas */
-.fe-canvas{min-height:80px;padding:10px;background:var(--color-bg);border:1px solid #555;border-radius:4px;margin-bottom:6px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;font-size:16px;font-family:'Times New Roman',serif;color:var(--color-text)}
+.fe-canvas{min-height:80px;max-height:34vh;overflow:auto;padding:10px;/* v4.8.11: 大公式不再把工具面板顶满 */background:var(--color-bg);border:1px solid #555;border-radius:4px;margin-bottom:6px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;font-size:16px;font-family:'Times New Roman',serif;color:var(--color-text)}
 
 /* v4.3.0 重构: 节点可点击+占位符 */
 .fe-node{display:inline-flex;vertical-align:middle;align-items:center;margin:0 1px;cursor:pointer;border-radius:3px;transition:background .1s}
@@ -274,7 +274,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.8.10</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.8.11</span></div>
   <div id="tabBar"></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
@@ -482,7 +482,19 @@ function _tcHex(){
 })();
 
 // ── 生成唯一 ID ──
-function slug(text){text=text.replace(/\x00[A-Z]{2}\d+\x00/g,'');return 'h-'+text.toLowerCase().replace(/[^\w\u4e00-\u9fff]+/g,'-').replace(/^-|-$/g,'')||'h-'+Math.random().toString(36).slice(2,8)}
+function slug(text){text=text.replace(/\x00[A-Z]{2}\d+\x00/g,'');return 'h-'+text.toLowerCase().replace(/[^\w\u4e00-\u9fff]+/g,'-').replace(/^-|-$/g,'')}
+// v4.8.11: 同名标题 id 去重——第 2 处起补 -2 / -3（按文档顺序，同 GitHub）
+// 不去重时 getElementById 只返回第一个：目录里同名项一起高亮、点击全跳到第一处
+function _uniqHeadingIds(root){
+  const used=Object.create(null);
+  root.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach(h=>{
+    if(!h.id) return;
+    const base=h.id; let cand=base, n=1;
+    while(used[cand]){ n++; cand=base+'-'+n; }
+    used[cand]=1;
+    if(cand!==base) h.id=cand;
+  });
+}
 
 // ── 生成目录 HTML ──
 // v4.7.2: 目录项里的 $...$ 用 KaTeX 渲染后再放进去（否则目录里显示 "$sup$ 的四个等价说法" 这种源码）
@@ -493,12 +505,14 @@ function _tocMath(s){
   });
 }
 function buildTOC(html){
-  const rx=/<(h[1-6])[^>]*id="([^"]*)"[^>]*>(.+?)<\/h[1-6]>/gi;
+  // v4.8.11: 先解析成 DOM 再去重标题 id，目录 id 与正文预览 DOM 逐一对得上（原来是正则扫字符串，重名标题 id 相同）
+  const tmp=document.createElement('div');
+  tmp.innerHTML=html;
+  _uniqHeadingIds(tmp);
   const items=[];
-  let m;
-  while((m=rx.exec(html))!==null){
-    items.push({tag:m[1],id:m[2],html:_tocMath(m[3]),text:m[3].replace(/<[^>]+>/g,'').replace(/\$/g,'')});
-  }
+  tmp.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach(h=>{
+    items.push({tag:h.tagName.toLowerCase(),id:h.id,html:_tocMath(h.innerHTML),text:h.textContent.replace(/\$/g,'')});
+  });
   tocList.innerHTML='';
   if(!items.length){
     tocList.innerHTML='<div class="toc-empty">暂无标题</div>';
@@ -693,6 +707,7 @@ function _renderBlocks(blocks,container){
     div.title='双击编辑';
     container.appendChild(div);
   });
+  _uniqHeadingIds(container);   // v4.8.11: 逐块渲染也要跨块去重，否则正文 DOM 里仍会出现重复 id
   _renderMath(container);
 }
 
@@ -915,6 +930,7 @@ function _livePreview(){
   }
   const html=renderMD(md);
   pv.innerHTML=html;
+  pv.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach(h=>h.removeAttribute('id'));   // v4.8.11: 编辑预览区不占 id，避免与正文同名 id 打架
   _renderMath(pv);
   // v4.1: 双击渲染公式→载入canvas编辑
   pv.onclick=function(e){
