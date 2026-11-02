@@ -144,7 +144,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 .block-edit-preview th,.block-edit-preview td{border:1px solid #555;padding:4px 8px;text-align:left}
 .block-edit-preview th{background:var(--color-btn);color:var(--color-text);font-weight:600}
 /* 符号工具栏 */
-#toolbar{width:320px;max-width:min(320px,30vw);flex-shrink:0;/* v4.8.11: 窄窗口/低分辨率下最多占 40% 宽，不再把正文挤没 */background:var(--color-bg-secondary);border-left:1px solid #444;display:none;flex-direction:column;overflow-y:auto}
+#toolbar{width:clamp(220px,26vw,320px);max-width:min(320px,34vw);flex-shrink:0;/* v4.8.12: 宽度随窗口走——大屏仍 320px，窄窗口/低分辨率自动收窄到 220px */background:var(--color-bg-secondary);border-left:1px solid #444;display:none;flex-direction:column;overflow-y:auto}
 #toolbar.show{display:flex}
 .tb-header{height:42px;padding:0 12px;border-bottom:1px solid #444;font-size:13px;color:var(--color-text-dim);display:flex;justify-content:space-between;align-items:center}   /* v4.8.10 */
 .tb-header button{background:none;border:none;color:var(--color-text-faint);cursor:pointer;font-size:16px;padding:0 4px}
@@ -219,6 +219,17 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 .fe-mtx-cell{display:inline-block;padding:0 4px;min-width:16px;text-align:center}
 .fe-mtx-cell:not(:first-child){border-left:1px dashed var(--color-border)}
 .fe-canvas .hint{color:#555;font-size:13px;width:100%}
+/* v4.8.12: 低分辨率（矮屏）纵向压缩——工具面板内容不再把整块屏幕填满 */
+@media (max-height:660px){
+  .fe-tpl-btn{padding:3px 2px;font-size:10px}
+  .fe-tpl-btn .fe-vis{font-size:13px;margin-top:0}
+  .fe-label{font-size:10px;margin:2px 0}
+  .fe-canvas{min-height:56px;padding:6px;font-size:14px;gap:6px}
+  .fe-latex{margin:2px 0;padding:2px 6px}
+  .fe-actions .fe-insert-btn{padding:5px}
+  .fe-actions .fe-clear-btn{padding:5px}
+  .fe-node .fe-ph{height:22px;min-width:22px}
+}
 /* v4.1.10: 槽位——默认透明让预览可见，聚焦后显示编辑框 */
 .fe-slot{display:inline-block;position:relative;z-index:1;min-width:32px;padding:4px 8px;border:2px dashed transparent;border-radius:4px;background:transparent;color:transparent;caret-color:#e0e0e0;text-align:center;font-size:16px;font-family:'Times New Roman',serif;vertical-align:middle;outline:none;cursor:text}
 .fe-slot:focus{color:#e0e0e0;border-color:#5aafff;border-style:solid;background:#1a3a4a}
@@ -274,7 +285,7 @@ body{font-family:var(--font-ui);background:var(--color-bg);color:var(--color-tex
 </div>
 <div class="resize-handle" id="handleSidebar" title="拖拽调整宽度"></div>
 <div class="main">
-  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.8.11</span></div>
+  <div class="toolbar"><span id="pathBar"></span><span style="flex:1"></span><button id="tocBtn" title="目录" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 10px;display:none">☰ 目录</button><button id="setBtn" title="设置" style="background:var(--color-btn);border:1px solid var(--color-border);color:var(--color-text-dim);border-radius:3px;cursor:pointer;font-size:12px;padding:2px 8px">⚙ 设置</button><span style="color:var(--color-accent);font-size:11px;padding:2px 8px;border:1px solid var(--color-accent);border-radius:3px;margin-left:4px">v4.8.12</span></div>
   <div id="tabBar"></div>
   <div id="dropZone">拖放文件夹或 .md 文件到这里<br>或点击 <u id="openFolderLink2">打开文件夹</u></div>
   <div id="previewWrap"><div id="preview"></div></div>
