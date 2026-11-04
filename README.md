@@ -10,7 +10,7 @@
 
 ---
 
-## 离线单文件版（发给别人用这个）
+## 离线单文件版
 
 ```bash
 python build_single.py     # 生成 dist/MarkdownViewer.html（约 750 KB）
